@@ -144,6 +144,9 @@ function TaskOrderDisplay({ taskOrder, index, nextEightQuarters }: { taskOrder: 
 }
 
 function CapabilityDisplay({ capability, index, color, nextEightQuarters }: { capability: Capability, index: number, color: string, nextEightQuarters: string[]}) {
+  const [expanded, setExpanded] = useState(false)
+  function toggleExpanded() { setExpanded(!expanded) }
+
   const gridRowIndex = index + 1
   let gridRow = `${gridRowIndex} / ${gridRowIndex + 1}`
   let gridColumn = getGridColumns(nextEightQuarters, capability.labels)
@@ -161,10 +164,6 @@ function CapabilityDisplay({ capability, index, color, nextEightQuarters }: { ca
   if (gridColumn === '1 / 2') {
     return <></>
   }
-
-  const [expanded, setExpanded] = useState(false)
-  function toggleExpanded() { setExpanded(!expanded) }
-
   return (
     <div
       className={`rounded-md ${ expanded ? '' : 'h-4 overflow-ellipsis'} m-0 text-xs border px-1 overflow-hidden cursor-s-resize`}
