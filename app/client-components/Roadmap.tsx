@@ -47,23 +47,16 @@ export default function Roadmap( {taskOrders} : { taskOrders : TaskOrder[]}) {
     }
   }
 
-  const [defaultExpanded, setDefaultExpanded] = useState(false)
-
-  async function toggleExpanded(e : any) {
-    e.preventDefault();
-    setDefaultExpanded(!defaultExpanded)
-  }
-
   return (
     <div ref={componentRef} className='w-full h-full flex flex-col bg-slate-900'>
-      <Title screenshotFunction={handleScreenshot} toggleExpanded={toggleExpanded} />
+      <Title screenshotFunction={handleScreenshot} />
       <HeaderRow nextEightQuarters={nextEightQuarters} />
-      {taskOrders ? taskOrders.map((to, index) => <TaskOrderDisplay key={index} taskOrder={to} index={index} nextEightQuarters={nextEightQuarters} defaultExpanded={defaultExpanded} />) : null}
+      {taskOrders ? taskOrders.map((to, index) => <TaskOrderDisplay key={index} taskOrder={to} index={index} nextEightQuarters={nextEightQuarters} />) : null}
     </div>
   )
 }
 
-function Title({screenshotFunction, toggleExpanded}: {screenshotFunction: (e : any) => void, toggleExpanded: (e : any) => void}) {
+function Title({screenshotFunction}: {screenshotFunction: (e : any) => void}) {
   const currentYear = new Date().getFullYear()
   const previousYear = currentYear - 1
   const nextYear = currentYear + 1
@@ -120,7 +113,7 @@ function HeaderRow({ nextEightQuarters }: { nextEightQuarters: string[] }) {
   )
 }
 
-function TaskOrderDisplay({ taskOrder, index, nextEightQuarters, defaultExpanded }: { taskOrder: TaskOrder, index: number, nextEightQuarters: string[], defaultExpanded:boolean }) {
+function TaskOrderDisplay({ taskOrder, index, nextEightQuarters }: { taskOrder: TaskOrder, index: number, nextEightQuarters: string[]}) {
   const capabilities = taskOrder.portfolioEpics.map(pe => pe.capabilities).flat()
   function getShadeOfPurple(index: number) {
     const shadesOfPurple = [
@@ -144,13 +137,13 @@ function TaskOrderDisplay({ taskOrder, index, nextEightQuarters, defaultExpanded
     >
       <div className='h-full w-full grid grid-cols-9 bg-gray-800'>
         <div style={{ gridColumn: firstColumn, gridRow: gridRowForTaskOrder, backgroundColor: color }}>{taskOrder.name}</div>
-        {capabilities.map((c, i) => <CapabilityDisplay key={i} capability={c} index={i + 1} color={color} nextEightQuarters={nextEightQuarters} defaultExpanded={defaultExpanded} />)}
+        {capabilities.map((c, i) => <CapabilityDisplay key={i} capability={c} index={i + 1} color={color} nextEightQuarters={nextEightQuarters} />)}
       </div>
     </div>
   )
 }
 
-function CapabilityDisplay({ capability, index, color, nextEightQuarters, defaultExpanded }: { capability: Capability, index: number, color: string, nextEightQuarters: string[], defaultExpanded:boolean }) {
+function CapabilityDisplay({ capability, index, color, nextEightQuarters }: { capability: Capability, index: number, color: string, nextEightQuarters: string[]}) {
   const gridRowIndex = index + 1
   let gridRow = `${gridRowIndex} / ${gridRowIndex + 1}`
   let gridColumn = getGridColumns(nextEightQuarters, capability.labels)
