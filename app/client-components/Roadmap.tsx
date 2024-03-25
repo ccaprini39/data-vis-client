@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { Capability, TaskOrder } from "./data-manipulation";
 import { Tooltip } from 'react-tooltip';
 import html2canvas from "html2canvas";
@@ -47,16 +47,23 @@ export default function Roadmap( {taskOrders} : { taskOrders : TaskOrder[]}) {
     }
   }
 
+  const [defaultExpanded, setDefaultExpanded] = useState(false)
+
+  async function toggleExpanded(e : any) {
+    e.preventDefault();
+    setDefaultExpanded(!defaultExpanded)
+  }
+
   return (
     <div ref={componentRef} className='w-full h-full flex flex-col bg-slate-900'>
-      <Title screenshotFunction={handleScreenshot} />
+      <Title screenshotFunction={handleScreenshot} toggleExpanded={toggleExpanded} />
       <HeaderRow nextEightQuarters={nextEightQuarters} />
-      {taskOrders ? taskOrders.map((to, index) => <TaskOrderDisplay key={index} taskOrder={to} index={index} nextEightQuarters={nextEightQuarters} />) : null}
+      {taskOrders ? taskOrders.map((to, index) => <TaskOrderDisplay key={index} taskOrder={to} index={index} nextEightQuarters={nextEightQuarters} defaultExpanded={defaultExpanded} />) : null}
     </div>
   )
 }
 
-function Title({screenshotFunction}: {screenshotFunction: (e : any) => void}) {
+function Title({screenshotFunction, toggleExpanded}: {screenshotFunction: (e : any) => void, toggleExpanded: (e : any) => void}) {
   const currentYear = new Date().getFullYear()
   const previousYear = currentYear - 1
   const nextYear = currentYear + 1
@@ -84,6 +91,12 @@ function Title({screenshotFunction}: {screenshotFunction: (e : any) => void}) {
         >
           Save as Image
         </button>
+        {/* <button 
+          className="text-xs bg-blue-500 rounded-md p-1 m-2 hover:bg-blue-700 hover:text-white"
+          onClick={toggleExpanded}
+        >
+          Expand/Collapse All
+        </button> */}
       </div>
     </form>
   )
@@ -107,7 +120,7 @@ function HeaderRow({ nextEightQuarters }: { nextEightQuarters: string[] }) {
   )
 }
 
-function TaskOrderDisplay({ taskOrder, index, nextEightQuarters }: { taskOrder: TaskOrder, index: number, nextEightQuarters: string[] }) {
+function TaskOrderDisplay({ taskOrder, index, nextEightQuarters, defaultExpanded }: { taskOrder: TaskOrder, index: number, nextEightQuarters: string[], defaultExpanded:boolean }) {
   const capabilities = taskOrder.portfolioEpics.map(pe => pe.capabilities).flat()
   function getShadeOfPurple(index: number) {
     const shadesOfPurple = [
@@ -131,13 +144,13 @@ function TaskOrderDisplay({ taskOrder, index, nextEightQuarters }: { taskOrder: 
     >
       <div className='h-full w-full grid grid-cols-9 bg-gray-800'>
         <div style={{ gridColumn: firstColumn, gridRow: gridRowForTaskOrder, backgroundColor: color }}>{taskOrder.name}</div>
-        {capabilities.map((c, i) => <CapabilityDisplay key={i} capability={c} index={i + 1} color={color} nextEightQuarters={nextEightQuarters} />)}
+        {capabilities.map((c, i) => <CapabilityDisplay key={i} capability={c} index={i + 1} color={color} nextEightQuarters={nextEightQuarters} defaultExpanded={defaultExpanded} />)}
       </div>
     </div>
   )
 }
 
-function CapabilityDisplay({ capability, index, color, nextEightQuarters }: { capability: Capability, index: number, color: string, nextEightQuarters: string[] }) {
+function CapabilityDisplay({ capability, index, color, nextEightQuarters, defaultExpanded }: { capability: Capability, index: number, color: string, nextEightQuarters: string[], defaultExpanded:boolean }) {
   const gridRowIndex = index + 1
   let gridRow = `${gridRowIndex} / ${gridRowIndex + 1}`
   let gridColumn = getGridColumns(nextEightQuarters, capability.labels)
@@ -156,9 +169,13 @@ function CapabilityDisplay({ capability, index, color, nextEightQuarters }: { ca
     return <></>
   }
 
+  const [expanded, setExpanded] = useState(false)
+  function toggleExpanded() { setExpanded(!expanded) }
+
   return (
     <div
-      className='rounded-md m-0 text-xs border px-1 overflow-hidden'
+      className={`rounded-md ${ expanded ? '' : 'h-4 overflow-ellipsis'} m-0 text-xs border px-1 overflow-hidden cursor-s-resize`}
+      onClick={toggleExpanded}
       style={{
         gridColumn: gridColumn,
         gridRow: gridRow,
