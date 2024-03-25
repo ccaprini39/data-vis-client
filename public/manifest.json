@@ -1,0 +1,16 @@
+{
+  "name": "Data Visualization App",
+  "short_name": "data-vis-pwa",
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#6b46C1",
+  "background_color": "#2D3748",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait"
+}
