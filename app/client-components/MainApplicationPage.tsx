@@ -33,7 +33,7 @@ export default function MainApplicationPage() {
     <div className='w-full h-full m-5'>
       <input type="file" id="fileInput" onChange={handleChange} accept=".xls,.xlsx" />
       <button 
-        className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'
+        className='bg-blue-500 text-sm hover:bg-blue-700 text-white font-bold p-2 rounded'
         onClick={handleResetFileSelection}>Reset
       </button>
       {tableData.length === 0 ? 
