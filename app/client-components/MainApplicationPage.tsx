@@ -8,9 +8,10 @@ export default function MainApplicationPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [tableData, setTableData] = useState<TaskOrder[]>([]);
 
-  // async function handleResetFileSelection() {
-  //   setSelectedFile(null);
-  // }
+  async function handleResetFileSelection() {
+    //reload to /
+    window.location.reload();
+  }
 
   useEffect(() => {
     async function fetchAndConvertData() {
@@ -31,7 +32,10 @@ export default function MainApplicationPage() {
   return (
     <div className='w-full h-full m-5'>
       <input type="file" id="fileInput" onChange={handleChange} accept=".xls,.xlsx" />
-      {/* <button onClick={handleResetFileSelection}>Reset</button> */}
+      <button 
+        className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'
+        onClick={handleResetFileSelection}>Reset
+      </button>
       {tableData.length === 0 ? 
         <div>No data</div> 
         : 
