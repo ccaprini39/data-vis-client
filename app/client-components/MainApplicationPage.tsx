@@ -8,9 +8,9 @@ export default function MainApplicationPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [tableData, setTableData] = useState<TaskOrder[]>([]);
 
-  async function handleResetFileSelection() {
-    setSelectedFile(null);
-  }
+  // async function handleResetFileSelection() {
+  //   setSelectedFile(null);
+  // }
 
   useEffect(() => {
     async function fetchAndConvertData() {
@@ -31,7 +31,7 @@ export default function MainApplicationPage() {
   return (
     <div className='w-full h-full m-5'>
       <input type="file" id="fileInput" onChange={handleChange} accept=".xls,.xlsx" />
-      <button onClick={handleResetFileSelection}>Reset</button>
+      {/* <button onClick={handleResetFileSelection}>Reset</button> */}
       {tableData.length === 0 ? 
         <div>No data</div> 
         : 
