@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { Capability, TaskOrder } from "./data-manipulation";
 import { Tooltip } from "react-tooltip";
 import html2canvas from "html2canvas";
@@ -6,9 +6,6 @@ import "react-tooltip/dist/react-tooltip.css";
 
 export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
   const nextEightQuarters = getNextEightQuarters();
-  const componentRef = useRef<HTMLDivElement>(null);
-  const [isFullScreen, setIsFullScreen] = useState(true);
-
   function getNextEightQuarters() {
     //first get the date
     const today = new Date();
@@ -30,18 +27,7 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
     ];
   }
 
-  useEffect(() => {
-    const handleResize = () => {
-      setIsFullScreen(window.innerHeight === screen.height);
-    };
-
-    window.addEventListener("resize", handleResize);
-    handleResize();
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+  const componentRef = useRef<HTMLDivElement>(null);
 
   async function handleScreenshot(e: any) {
     e.preventDefault();
@@ -64,23 +50,20 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
   return (
     <div
       ref={componentRef}
-      className="w-full h-screen flex flex-col bg-slate-900"
+      className="w-full h-full flex flex-col bg-slate-900"
     >
       <Title screenshotFunction={handleScreenshot} />
       <HeaderRow nextEightQuarters={nextEightQuarters} />
-      <div className="flex-1 overflow-auto">
-        {taskOrders
-          ? taskOrders.map((to, index) => (
-              <TaskOrderDisplay
-                key={index}
-                taskOrder={to}
-                index={index}
-                nextEightQuarters={nextEightQuarters}
-                isFullScreen={isFullScreen}
-              />
-            ))
-          : null}
-      </div>
+      {taskOrders
+        ? taskOrders.map((to, index) => (
+            <TaskOrderDisplay
+              key={index}
+              taskOrder={to}
+              index={index}
+              nextEightQuarters={nextEightQuarters}
+            />
+          ))
+        : null}
     </div>
   );
 }
@@ -109,7 +92,7 @@ function Title({
         >
           Save as Image
         </button>
-        {/* <button
+        {/* <button 
           className="text-xs bg-blue-500 rounded-md p-1 m-2 hover:bg-blue-700 hover:text-white"
           onClick={toggleExpanded}
         >
@@ -156,17 +139,14 @@ function TaskOrderDisplay({
   taskOrder,
   index,
   nextEightQuarters,
-  isFullScreen,
 }: {
   taskOrder: TaskOrder;
   index: number;
   nextEightQuarters: string[];
-  isFullScreen: boolean;
 }) {
   const capabilities = taskOrder.portfolioEpics
     .map((pe) => pe.capabilities)
     .flat();
-
   function getShadeOfPurple(index: number) {
     const shadesOfPurple = [
       "#4B0082", // Indigo
@@ -202,7 +182,6 @@ function TaskOrderDisplay({
             index={i + 1}
             color={color}
             nextEightQuarters={nextEightQuarters}
-            isFullScreen={isFullScreen}
           />
         ))}
       </div>
@@ -215,37 +194,20 @@ function CapabilityDisplay({
   index,
   color,
   nextEightQuarters,
-  isFullScreen,
 }: {
   capability: Capability;
   index: number;
   color: string;
   nextEightQuarters: string[];
-  isFullScreen: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-      setExpanded(false);
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
-  const toggleExpanded = () => {
-    setExpanded(!expanded);
-  };
+  // const [expanded, setExpanded] = useState(false);
+  // function toggleExpanded() {
+  //   setExpanded(!expanded);
+  // }
 
   const gridRowIndex = index + 1;
   let gridRow = `${gridRowIndex} / ${gridRowIndex + 1}`;
   let gridColumn = getGridColumns(nextEightQuarters, capability.labels);
-
   function getGridColumns(getNextEightQuarters: string[], labels: string[]) {
     const beginningQuarter = labels[0];
     const endQuarter = labels[labels.length - 1];
@@ -254,35 +216,32 @@ function CapabilityDisplay({
     const gridColumn = `${beginningIndex + 2} / ${endIndex + 3}`;
     return gridColumn;
   }
-
   if (gridColumn === "1 / 2") {
     return <></>;
   }
-
-  const maxWidth = window.screen.width;
-  const textLength = capability.name.length;
-  const visibleLength = Math.floor((windowWidth / maxWidth) * textLength);
-  const truncatedText = capability.name.slice(0, visibleLength);
-
-  const isTextTruncated = visibleLength < textLength;
-
   return (
+    // <div
+    //   className={`rounded-md ${
+    //     expanded ? "" : "h-4 overflow-ellipsis"
+    //   } m-0 text-xs border px-1 overflow-hidden cursor-s-resize`}
+    //   onClick={toggleExpanded}
+    //   style={{
+    //     gridColumn: gridColumn,
+    //     gridRow: gridRow,
+    //     backgroundColor: color,
+    //   }}
+    // >
     <div
-      className={`rounded-md h-auto py-auto m-0 text-xs border px-1 ${
-        isTextTruncated && !isFullScreen ? "cursor-pointer" : ""
-      }`}
-      onClick={isTextTruncated && !isFullScreen ? toggleExpanded : undefined}
+      className={`rounded-md m-0 text-xs border px-1 overflow-hidden cursor-s-resize`}
       style={{
         gridColumn: gridColumn,
         gridRow: gridRow,
         backgroundColor: color,
-        width: "100%",
-        height: "100%",
-        margin: "0",
       }}
     >
-      <div className="whitespace-normal break-words">
-        {isFullScreen || expanded ? capability.name : truncatedText}
+      {capability.name}
+      <div className="absolute text-xs rounded bg-black text-white p-1 bottom-full mb-2 group-hover:visible">
+        text
       </div>
     </div>
   );
