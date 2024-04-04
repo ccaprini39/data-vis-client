@@ -2,6 +2,7 @@ import React, { useRef, useState } from "react";
 import { Capability, TaskOrder } from "./data-manipulation";
 import { Tooltip } from "react-tooltip";
 import html2canvas from "html2canvas";
+import domtoimage from "dom-to-image";
 import "react-tooltip/dist/react-tooltip.css";
 
 export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
@@ -31,15 +32,14 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
 
   async function handleScreenshot(e: any) {
     e.preventDefault();
-    console.log("Taking screenshot");
     if (componentRef.current) {
       try {
-        console.log("Taking screenshot");
-        const canvas = await html2canvas(componentRef.current);
-        // Create a link to download the canvas image
+        const dataUrl = await domtoimage.toPng(componentRef.current);
+
+        // Create a link to download the image
         const link = document.createElement("a");
         link.download = "screenshot.png";
-        link.href = canvas.toDataURL("image/png");
+        link.href = dataUrl;
         link.click();
       } catch (error) {
         console.error("Error taking screenshot:", error);
@@ -172,6 +172,7 @@ function TaskOrderDisplay({
             gridRow: gridRowForTaskOrder,
             backgroundColor: color,
           }}
+          className="flex items-center justify-center"
         >
           {taskOrder.name}
         </div>
@@ -232,7 +233,7 @@ function CapabilityDisplay({
     //   }}
     // >
     <div
-      className={`rounded-md m-0 text-xs border px-1 overflow-hidden cursor-s-resize`}
+      className={`rounded-md m-0 text-xs border px-1 overflow-hidden cursor-s-resize flex  items-center`}
       style={{
         gridColumn: gridColumn,
         gridRow: gridRow,
