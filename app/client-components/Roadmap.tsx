@@ -1,7 +1,6 @@
 import React, { useRef, useState } from "react";
 import { Capability, TaskOrder } from "./data-manipulation";
 import { Tooltip } from "react-tooltip";
-import html2canvas from "html2canvas";
 import domtoimage from "dom-to-image";
 import "react-tooltip/dist/react-tooltip.css";
 
@@ -233,7 +232,7 @@ function CapabilityDisplay({
     //   }}
     // >
     <div
-      className={`rounded-md m-0 text-xs border px-1 overflow-hidden cursor-s-resize flex  items-center`}
+      className={`rounded-md m-0 text-xs border px-1 py-0.5 overflow-hidden cursor-s-resize flex  items-center`}
       style={{
         gridColumn: gridColumn,
         gridRow: gridRow,
@@ -241,7 +240,7 @@ function CapabilityDisplay({
       }}
     >
       {capability.name}
-      <div className="absolute text-xs rounded bg-black text-white p-1 bottom-full mb-2 group-hover:visible">
+      <div className="absolute text-xs rounded bg-black text-white p-2 bottom-full mb-2 group-hover:visible">
         text
       </div>
     </div>
