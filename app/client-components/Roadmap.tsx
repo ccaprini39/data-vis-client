@@ -200,10 +200,10 @@ function CapabilityDisplay({
   color: string;
   nextEightQuarters: string[];
 }) {
-  // const [expanded, setExpanded] = useState(false);
-  // function toggleExpanded() {
-  //   setExpanded(!expanded);
-  // }
+  const [expanded, setExpanded] = useState(false);
+  function toggleExpanded() {
+    setExpanded(!expanded);
+  }
 
   const gridRowIndex = index + 1;
   let gridRow = `${gridRowIndex} / ${gridRowIndex + 1}`;
@@ -220,19 +220,11 @@ function CapabilityDisplay({
     return <></>;
   }
   return (
-    // <div
-    //   className={`rounded-md ${
-    //     expanded ? "" : "h-4 overflow-ellipsis"
-    //   } m-0 text-xs border px-1 overflow-hidden cursor-s-resize`}
-    //   onClick={toggleExpanded}
-    //   style={{
-    //     gridColumn: gridColumn,
-    //     gridRow: gridRow,
-    //     backgroundColor: color,
-    //   }}
-    // >
     <div
-      className={`rounded-md m-0 text-xs border px-1 overflow-hidden cursor-s-resize`}
+      className={`rounded-md ${
+        expanded ? "" : "h-4 overflow-ellipsis"
+      } m-0 text-xs border px-1 overflow-hidden cursor-s-resize`}
+      onClick={toggleExpanded}
       style={{
         gridColumn: gridColumn,
         gridRow: gridRow,
