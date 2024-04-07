@@ -208,15 +208,28 @@ function CapabilityDisplay({
   const gridRowIndex = index + 1;
   let gridRow = `${gridRowIndex} / ${gridRowIndex + 1}`;
   let gridColumn = getGridColumns(nextEightQuarters, capability.labels);
-  function getGridColumns(getNextEightQuarters: string[], labels: string[]) {
+  function getGridColumns(nextEightQuarters: string[], labels: string[]) {
+    if (labels.length === 0) {
+      return "";
+    }
+
     const beginningQuarter = labels[0];
     const endQuarter = labels[labels.length - 1];
-    const beginningIndex = getNextEightQuarters.indexOf(beginningQuarter);
-    const endIndex = getNextEightQuarters.indexOf(endQuarter);
+    const beginningIndex = nextEightQuarters.findIndex(
+      (quarter) => quarter === beginningQuarter
+    );
+    const endIndex = nextEightQuarters.findIndex(
+      (quarter) => quarter === endQuarter
+    );
+
+    if (beginningIndex === -1 || endIndex === -1) {
+      return "";
+    }
+
     const gridColumn = `${beginningIndex + 2} / ${endIndex + 3}`;
     return gridColumn;
   }
-  if (gridColumn === "1 / 2") {
+  if (gridColumn === "") {
     return <></>;
   }
   return (
