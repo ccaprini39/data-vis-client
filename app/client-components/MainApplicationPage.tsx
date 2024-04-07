@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { parseXLSFile, TaskOrder } from "./data-manipulation";
 import Roadmap from "./Roadmap";
+import { ModeToggle } from "@/components/ModeToggleButton";
 
 export default function MainApplicationPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -29,7 +30,7 @@ export default function MainApplicationPage() {
 
   return (
     <div className="w-full h-full m-5">
-      <div className="flex items-center space-x-4">
+      <div className="w-full flex justify-between">
         <label htmlFor="fileInput" className="block">
           <span className="sr-only">Choose file</span>
           <input
@@ -46,6 +47,7 @@ export default function MainApplicationPage() {
         >
           Reset
         </button>
+        <ModeToggle />
       </div>
       {tableData.length === 0 ? (
         <div className="mx-4">No data</div>

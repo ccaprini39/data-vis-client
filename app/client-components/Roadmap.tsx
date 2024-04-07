@@ -1,7 +1,11 @@
 import React, { useRef, useState } from "react";
 import { Capability, TaskOrder } from "./data-manipulation";
-import { Tooltip } from "react-tooltip";
 import domtoimage from "dom-to-image";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card"
 import "react-tooltip/dist/react-tooltip.css";
 
 export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
@@ -229,6 +233,8 @@ function CapabilityDisplay({
     const gridColumn = `${beginningIndex + 2} / ${endIndex + 3}`;
     return gridColumn;
   }
+  const epics : any = capability.epics;
+  console.log(epics)
   if (gridColumn === "") {
     return <></>;
   }
@@ -245,14 +251,26 @@ function CapabilityDisplay({
     //   }}
     // >
     <div
-      className={`rounded-md text-xs border px-4 py-1 whitespace-normal cursor-s-resize flex items-center justify-center text-center`}
+      className={`rounded-md text-xs border px-4 py-1 whitespace-normal flex items-center justify-center text-center`}
       style={{
         gridColumn: gridColumn,
         gridRow: gridRow,
         backgroundColor: color,
       }}
     >
-      {capability.name}
+      <HoverCard>
+        <HoverCardTrigger asChild>
+          <div>{capability.name}</div>
+        </HoverCardTrigger>
+        <HoverCardContent className="w-96">
+          <div className="font-bold text-lg">{capability.name}</div>
+          <ul>
+            {epics.map((epic : any, i : number) => (
+              <li className="text-xs" key={i}>{epic?.Summary}</li>
+            ))}
+          </ul>
+        </HoverCardContent>
+      </HoverCard>
     </div>
   );
 }
