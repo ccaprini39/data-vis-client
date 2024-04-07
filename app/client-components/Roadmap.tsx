@@ -245,7 +245,7 @@ function CapabilityDisplay({
     //   }}
     // >
     <div
-      className={`rounded-md m-0 text-xs border px-1 py-0.5 overflow-hidden cursor-s-resize flex  items-center`}
+      className={`rounded-md text-xs border px-4 py-1 whitespace-normal cursor-s-resize flex items-center justify-center text-center`}
       style={{
         gridColumn: gridColumn,
         gridRow: gridRow,
@@ -253,9 +253,6 @@ function CapabilityDisplay({
       }}
     >
       {capability.name}
-      <div className="absolute text-xs rounded bg-black text-white p-2 bottom-full mb-2 group-hover:visible">
-        text
-      </div>
     </div>
   );
 }
