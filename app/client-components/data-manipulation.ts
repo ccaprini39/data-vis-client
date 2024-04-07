@@ -105,7 +105,7 @@ function categorizeAndStructureTasks(data: any[]) {
         // Handle the case when a portfolio epic is not under any task order
         currentPortfolioEpic = { ...item, capabilities: [] };
         taskOrders.push({
-          name: "Unassigned",
+          name: "",
           portfolioEpics: [currentPortfolioEpic],
         });
       }
@@ -117,17 +117,15 @@ function categorizeAndStructureTasks(data: any[]) {
       } else if (currentTaskOrder) {
         currentCapability = { ...item, epics: [] };
         currentTaskOrder.portfolioEpics.push({
-          name: "Unassigned",
+          name: "",
           capabilities: [currentCapability],
         });
       } else {
         // Handle the case when a capability is not under any task order or portfolio epic
         currentCapability = { ...item, epics: [] };
         taskOrders.push({
-          name: "Unassigned",
-          portfolioEpics: [
-            { name: "Unassigned", capabilities: [currentCapability] },
-          ],
+          name: "",
+          portfolioEpics: [{ name: "", capabilities: [currentCapability] }],
         });
       }
     } else if (item.type === "epic") {
@@ -137,24 +135,24 @@ function categorizeAndStructureTasks(data: any[]) {
       } else if (currentPortfolioEpic) {
         currentEpic = { ...item, stories: [] };
         currentPortfolioEpic.capabilities.push({
-          name: "Unassigned",
+          name: "",
           epics: [currentEpic],
         });
       } else if (currentTaskOrder) {
         currentEpic = { ...item, stories: [] };
         currentTaskOrder.portfolioEpics.push({
-          name: "Unassigned",
-          capabilities: [{ name: "Unassigned", epics: [currentEpic] }],
+          name: "",
+          capabilities: [{ name: "", epics: [currentEpic] }],
         });
       } else {
         // Handle the case when an epic is not under any task order, portfolio epic, or capability
         currentEpic = { ...item, stories: [] };
         taskOrders.push({
-          name: "Unassigned",
+          name: "",
           portfolioEpics: [
             {
-              name: "Unassigned",
-              capabilities: [{ name: "Unassigned", epics: [currentEpic] }],
+              name: "",
+              capabilities: [{ name: "", epics: [currentEpic] }],
             },
           ],
         });
@@ -163,33 +161,33 @@ function categorizeAndStructureTasks(data: any[]) {
       if (currentEpic) {
         currentEpic.stories.push(item);
       } else if (currentCapability) {
-        currentCapability.epics.push({ name: "Unassigned", stories: [item] });
+        currentCapability.epics.push({ name: "", stories: [item] });
       } else if (currentPortfolioEpic) {
         currentPortfolioEpic.capabilities.push({
-          name: "Unassigned",
-          epics: [{ name: "Unassigned", stories: [item] }],
+          name: "",
+          epics: [{ name: "", stories: [item] }],
         });
       } else if (currentTaskOrder) {
         currentTaskOrder.portfolioEpics.push({
-          name: "Unassigned",
+          name: "",
           capabilities: [
             {
-              name: "Unassigned",
-              epics: [{ name: "Unassigned", stories: [item] }],
+              name: "",
+              epics: [{ name: "", stories: [item] }],
             },
           ],
         });
       } else {
         // Handle the case when a story is not under any task order, portfolio epic, capability, or epic
         taskOrders.push({
-          name: "Unassigned",
+          name: "",
           portfolioEpics: [
             {
-              name: "Unassigned",
+              name: "",
               capabilities: [
                 {
-                  name: "Unassigned",
-                  epics: [{ name: "Unassigned", stories: [item] }],
+                  name: "",
+                  epics: [{ name: "", stories: [item] }],
                 },
               ],
             },
