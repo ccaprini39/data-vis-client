@@ -62,7 +62,7 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
   return (
     <div
       ref={componentRef}
-      className="w-full h-screen flex flex-col bg-slate-900"
+      className="w-full h-screen flex flex-col"
     >
       <Title screenshotFunction={handleScreenshot} />
       <HeaderRow nextEightQuarters={nextEightQuarters} />
@@ -183,7 +183,7 @@ function TaskOrderDisplay({
 
   return (
     <div className="flex-1 flex flex-row w-full" key={index}>
-      <div className="h-full w-full grid grid-cols-9 bg-gray-800">
+      <div className="h-full w-full grid grid-cols-9">
         <div
           style={{
             gridColumn: firstColumn,

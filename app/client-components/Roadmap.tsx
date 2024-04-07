@@ -1,7 +1,11 @@
 import React, { useRef, useState } from "react";
 import { Capability, TaskOrder } from "./data-manipulation";
-import { Tooltip } from "react-tooltip";
 import domtoimage from "dom-to-image";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card"
 import "react-tooltip/dist/react-tooltip.css";
 
 export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
@@ -49,7 +53,7 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
   return (
     <div
       ref={componentRef}
-      className="w-full h-full flex flex-col bg-slate-900"
+      className="w-full h-full flex flex-col"
     >
       <Title screenshotFunction={handleScreenshot} />
       <HeaderRow nextEightQuarters={nextEightQuarters} />
@@ -163,8 +167,8 @@ function TaskOrderDisplay({
   const gridRowForTaskOrder = `1 / ${2 + numberOfRows}`;
 
   return (
-    <div className="flex-1 flex flex-row w-full" key={index}>
-      <div className="h-full w-full grid grid-cols-9 bg-gray-800">
+    <div className="flex-1 flex flex-row w-full border border-red-100 rounded-md" key={index}>
+      <div className="h-full w-full grid grid-cols-9">
         <div
           style={{
             gridColumn: firstColumn,
@@ -208,15 +212,30 @@ function CapabilityDisplay({
   const gridRowIndex = index + 1;
   let gridRow = `${gridRowIndex} / ${gridRowIndex + 1}`;
   let gridColumn = getGridColumns(nextEightQuarters, capability.labels);
-  function getGridColumns(getNextEightQuarters: string[], labels: string[]) {
+  function getGridColumns(nextEightQuarters: string[], labels: string[]) {
+    if (labels.length === 0) {
+      return "";
+    }
+
     const beginningQuarter = labels[0];
     const endQuarter = labels[labels.length - 1];
-    const beginningIndex = getNextEightQuarters.indexOf(beginningQuarter);
-    const endIndex = getNextEightQuarters.indexOf(endQuarter);
+    const beginningIndex = nextEightQuarters.findIndex(
+      (quarter) => quarter === beginningQuarter
+    );
+    const endIndex = nextEightQuarters.findIndex(
+      (quarter) => quarter === endQuarter
+    );
+
+    if (beginningIndex === -1 || endIndex === -1) {
+      return "";
+    }
+
     const gridColumn = `${beginningIndex + 2} / ${endIndex + 3}`;
     return gridColumn;
   }
-  if (gridColumn === "1 / 2") {
+  const epics : any = capability.epics;
+  console.log(epics)
+  if (gridColumn === "") {
     return <></>;
   }
   return (
@@ -232,17 +251,26 @@ function CapabilityDisplay({
     //   }}
     // >
     <div
-      className={`rounded-md m-0 text-xs border px-1 py-0.5 overflow-hidden cursor-s-resize flex  items-center`}
+      className={`rounded-md text-xs border px-4 py-1 whitespace-normal flex items-center justify-center text-center`}
       style={{
         gridColumn: gridColumn,
         gridRow: gridRow,
         backgroundColor: color,
       }}
     >
-      {capability.name}
-      <div className="absolute text-xs rounded bg-black text-white p-2 bottom-full mb-2 group-hover:visible">
-        text
-      </div>
+      <HoverCard>
+        <HoverCardTrigger asChild>
+          <div>{capability.name}</div>
+        </HoverCardTrigger>
+        <HoverCardContent className="w-96">
+          <div className="font-bold text-lg">{capability.name}</div>
+          <ul>
+            {epics.map((epic : any, i : number) => (
+              <li className="text-xs" key={i}>{epic?.Summary}</li>
+            ))}
+          </ul>
+        </HoverCardContent>
+      </HoverCard>
     </div>
   );
 }

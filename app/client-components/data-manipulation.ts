@@ -1,33 +1,73 @@
-const XLSX = require('xlsx');
+const XLSX = require("xlsx");
 
 function transformData(data: any) {
   return data.map((item: any) => {
-    if (item.level === 0) {
-      return { type: "task order", ...item };
-    } else if (item.level === 1) {
-      const plannedStartDate = excelDateToJSDate(item["Planned Start"]);
-      const plannedEndDate = excelDateToJSDate(item["Planned End"]);
-      return {
-        type: "portfolio epic",
-        plannedStart: plannedStartDate,
-        plannedEnd: plannedEndDate,
-        ...item,
-      };
-    } else if (item.level === 2) {
-      const plannedStartDate = excelDateToJSDate(item["Planned Start"]);
-      const plannedEndDate = excelDateToJSDate(item["Planned End"]);
-      return {
-        type: "capability",
-        plannedStart: plannedStartDate,
-        plannedEnd: plannedEndDate,
-        ...item,
-      };
-    } else if (item.level === 3) {
-      return { type: "epic", ...item };
-    } else if (item.level === 4) {
-      return { type: "story", ...item };
-    } else {
-      return { type: "unknown", ...item };
+    const issueType = item["Issue Type"]?.trim().toLowerCase();
+
+    switch (issueType) {
+      case "task order":
+        return { type: "task order", name: item.Summary, ...item };
+      case "portfolio epic":
+        const plannedStartDatePE = excelDateToJSDate(item["Planned Start"]);
+        const plannedEndDatePE = excelDateToJSDate(item["Planned End"]);
+        return {
+          type: "portfolio epic",
+          plannedStart: plannedStartDatePE,
+          plannedEnd: plannedEndDatePE,
+          ...item,
+        };
+      case "capability":
+        const plannedStartDateC = excelDateToJSDate(item["Planned Start"]);
+        const plannedEndDateC = excelDateToJSDate(item["Planned End"]);
+        return {
+          type: "capability",
+          name: item.Summary,
+          plannedStart: plannedStartDateC,
+          plannedEnd: plannedEndDateC,
+          labels: labelsToStringArray(item.Labels),
+          ...item,
+        };
+      case "epic":
+        return { type: "epic", ...item };
+      case "story":
+        return { type: "story", ...item };
+      default:
+        switch (item.level) {
+          case 0:
+            return { type: "task order", name: item.Summary, ...item };
+          case 1:
+            const plannedStartDatePE2 = excelDateToJSDate(
+              item["Planned Start"]
+            );
+            const plannedEndDatePE2 = excelDateToJSDate(item["Planned End"]);
+            return {
+              type: "portfolio epic",
+              plannedStart: plannedStartDatePE2,
+              plannedEnd: plannedEndDatePE2,
+              ...item,
+            };
+          case 2:
+            const plannedStartDateC2 = excelDateToJSDate(item["Planned Start"]);
+            const plannedEndDateC2 = excelDateToJSDate(item["Planned End"]);
+            return {
+              type: "capability",
+              name: item.Summary,
+              plannedStart: plannedStartDateC2,
+              plannedEnd: plannedEndDateC2,
+              labels: labelsToStringArray(item.Labels),
+              ...item,
+            };
+          case 3:
+            return { type: "epic", ...item };
+          case 4:
+            return { type: "story", ...item };
+          default:
+            return {
+              type: issueType || "unknown",
+              name: item.Summary,
+              ...item,
+            };
+        }
     }
   });
 }
@@ -42,45 +82,124 @@ function excelDateToJSDate(serial: number) {
 }
 
 function categorizeAndStructureTasks(data: any[]) {
-  let taskOrder = "";
-  let portfolioEpic = "";
-  let capability = "";
-  let epic = "";
-  let newData = [];
-  for (let i = 0; i < data.length; i++) {
-    if (data[i].type === "task order") {
-      taskOrder = data[i].Summary;
-      newData.push(data[i]);
-    } else if (data[i].type === "portfolio epic") {
-      portfolioEpic = data[i].Summary;
-      newData.push({ ...data[i], taskOrder: taskOrder });
-    } else if (data[i].type === "capability") {
-      capability = data[i].Summary;
-      newData.push({
-        ...data[i],
-        taskOrder: taskOrder,
-        portfolioEpic: portfolioEpic,
-      });
-    } else if (data[i].type === "epic") {
-      epic = data[i].Summary;
-      newData.push({
-        ...data[i],
-        taskOrder: taskOrder,
-        portfolioEpic: portfolioEpic,
-        capability: capability,
-      });
-    } else if (data[i].type === "story") {
-      newData.push({
-        taskOrder: taskOrder,
-        portfolioEpic: portfolioEpic,
-        capability: capability,
-        epic: epic,
-        story: data[i].name,
-      });
+  let taskOrders: any[] = [];
+  let currentTaskOrder: any = null;
+  let currentPortfolioEpic: any = null;
+  let currentCapability: any = null;
+  let currentEpic: any = null;
+
+  data.forEach((item) => {
+    if (item.type === "task order") {
+      currentTaskOrder = { ...item, portfolioEpics: [] };
+      taskOrders.push(currentTaskOrder);
+      currentPortfolioEpic = null;
+      currentCapability = null;
+      currentEpic = null;
+    } else if (item.type === "portfolio epic") {
+      if (currentTaskOrder) {
+        currentPortfolioEpic = { ...item, capabilities: [] };
+        currentTaskOrder.portfolioEpics.push(currentPortfolioEpic);
+        currentCapability = null;
+        currentEpic = null;
+      } else {
+        // Handle the case when a portfolio epic is not under any task order
+        currentPortfolioEpic = { ...item, capabilities: [] };
+        taskOrders.push({
+          name: "",
+          portfolioEpics: [currentPortfolioEpic],
+        });
+      }
+    } else if (item.type === "capability") {
+      if (currentPortfolioEpic) {
+        currentCapability = { ...item, epics: [] };
+        currentPortfolioEpic.capabilities.push(currentCapability);
+        currentEpic = null;
+      } else if (currentTaskOrder) {
+        currentCapability = { ...item, epics: [] };
+        currentTaskOrder.portfolioEpics.push({
+          name: "",
+          capabilities: [currentCapability],
+        });
+      } else {
+        // Handle the case when a capability is not under any task order or portfolio epic
+        currentCapability = { ...item, epics: [] };
+        taskOrders.push({
+          name: "",
+          portfolioEpics: [{ name: "", capabilities: [currentCapability] }],
+        });
+      }
+    } else if (item.type === "epic") {
+      if (currentCapability) {
+        currentEpic = { ...item, stories: [] };
+        currentCapability.epics.push(currentEpic);
+      } else if (currentPortfolioEpic) {
+        currentEpic = { ...item, stories: [] };
+        currentPortfolioEpic.capabilities.push({
+          name: "",
+          epics: [currentEpic],
+        });
+      } else if (currentTaskOrder) {
+        currentEpic = { ...item, stories: [] };
+        currentTaskOrder.portfolioEpics.push({
+          name: "",
+          capabilities: [{ name: "", epics: [currentEpic] }],
+        });
+      } else {
+        // Handle the case when an epic is not under any task order, portfolio epic, or capability
+        currentEpic = { ...item, stories: [] };
+        taskOrders.push({
+          name: "",
+          portfolioEpics: [
+            {
+              name: "",
+              capabilities: [{ name: "", epics: [currentEpic] }],
+            },
+          ],
+        });
+      }
+    } else if (item.type === "story") {
+      if (currentEpic) {
+        currentEpic.stories.push(item);
+      } else if (currentCapability) {
+        currentCapability.epics.push({ name: "", stories: [item] });
+      } else if (currentPortfolioEpic) {
+        currentPortfolioEpic.capabilities.push({
+          name: "",
+          epics: [{ name: "", stories: [item] }],
+        });
+      } else if (currentTaskOrder) {
+        currentTaskOrder.portfolioEpics.push({
+          name: "",
+          capabilities: [
+            {
+              name: "",
+              epics: [{ name: "", stories: [item] }],
+            },
+          ],
+        });
+      } else {
+        // Handle the case when a story is not under any task order, portfolio epic, capability, or epic
+        taskOrders.push({
+          name: "",
+          portfolioEpics: [
+            {
+              name: "",
+              capabilities: [
+                {
+                  name: "",
+                  epics: [{ name: "", stories: [item] }],
+                },
+              ],
+            },
+          ],
+        });
+      }
     }
-  }
-  return newData;
+  });
+
+  return taskOrders;
 }
+
 // function transformData(data: any){
 //   return data.map((item: any) => transformDataPoint(item));
 // }
@@ -91,7 +210,7 @@ export function processData(data: any) {
   const typedData = convertToTypedData(processedData);
   // console.log(typedData);
   // console.log(processedData);
-  return processedData;
+  return typedData;
 }
 
 export interface TaskOrder {
@@ -145,160 +264,96 @@ export interface Story {
 }
 
 //takes in labels in this format FY24Q1, FY24Q2, converts to an array of strings
-function labelsToStringArray(labels : string | undefined){
-  if(labels === undefined){
+// data-manipulation.ts
+
+function labelsToStringArray(labels: string | undefined) {
+  if (labels === undefined || labels.trim() === "") {
     return [];
   }
-  return labels.split(', ');
+  return labels
+    .split(",")
+    .map((label) => label.trim())
+    .filter((label) => label.startsWith("FY"));
 }
 
 function convertToTypedData(data: any): TaskOrder[] {
-  let taskOrders: TaskOrder[] = [];
-  let portfolioEpics: PortfolioEpic[] = [];
-  let capabilities: Capability[] = [];
-  let epics: Epic[] = [];
-  let stories: Story[] = [];
-
-  data.forEach((item: any) => {
-    if (item.type === "task order") {
-      let taskOrder: TaskOrder = {
-        name: item.Summary,
-        portfolioEpics: [],
-      };
-      taskOrders.push(taskOrder);
-    } else if (item.type === "portfolio epic") {
-      let portfolioEpic: PortfolioEpic = {
-        name: item.Summary,
-        capabilities: [],
-        plannedStart: item.plannedStart,
-        plannedEnd: item.plannedEnd,
-        taskOrder: item.taskOrder,
-        storyProgress: item["Story Progress"],
-        labels: labelsToStringArray(item["Labels"]),
-      };
-      portfolioEpics.push(portfolioEpic);
-    } else if (item.type === "capability") {
-      console.log(item["Labels"])
-      let capability: Capability = {
-        name: item.Summary,
-        epics: [],
-        plannedStart: item.plannedStart,
-        plannedEnd: item.plannedEnd,
-        portfolioEpic: item.portfolioEpic,
-        taskOrder: item.taskOrder,
-        storyProgress: item["Story Progress"],
-        labels: labelsToStringArray(item["Labels"]),
-      };
-      capabilities.push(capability);
-    } else if (item.type === "epic") {
-      let epic: Epic = {
-        name: item.Summary,
-        stories: [],
-        plannedStart: item.plannedStart,
-        plannedEnd: item.plannedEnd,
-        storyProgress: item["Story Progress"],
-        capability: item.capability,
-        taskOrder: item.taskOrder,
-        portfolioEpic: item.portfolioEpic,
-        labels: labelsToStringArray(item["Labels"]),
-      };
-      epics.push(epic);
-    } else if (item.type === "story") {
-      let story: Story = {
-        name: item.Summary,
-        plannedStart: item.plannedStart,
-        plannedEnd: item.plannedEnd,
-        storyProgress: item["Story Progress"],
-        capability: item.capability,
-        epic: item.epic,
-        taskOrder: item.taskOrder,
-        portfolioEpic: item.portfolioEpic,
-        labels: labelsToStringArray(item["Labels"]),
-      };
-      stories.push(story);
-    }
-  });
-
-  taskOrders.forEach((taskOrder) => {
-    portfolioEpics.forEach((portfolioEpic) => {
-      if (portfolioEpic.taskOrder === taskOrder.name) {
-        taskOrder.portfolioEpics.push(portfolioEpic);
-      }
-    });
-  });
-
-  //now we need to assign the capabilities to the portfolio epics
-  portfolioEpics.forEach((portfolioEpic) => {
-    capabilities.forEach((capability) => {
-      if (capability.portfolioEpic === portfolioEpic.name) {
-        portfolioEpic.capabilities.push(capability);
-      }
-    });
-  });
-
-  //now we need to assign the epics to the capabilities
-  capabilities.forEach((capability) => {
-    epics.forEach((epic) => {
-      if (epic.capability === capability.name) {
-        capability.epics.push(epic);
-      }
-    });
-  });
-
-  //now we need to assign the stories to the epics
-  epics.forEach((epic) => {
-    stories.forEach((story) => {
-      if (story.epic === epic.name) {
-        epic.stories.push(story);
-      }
-    });
-  });
-
-  return taskOrders;
+  return data.map((taskOrder: any) => ({
+    ...taskOrder,
+    portfolioEpics: (taskOrder.portfolioEpics || []).map(
+      (portfolioEpic: any) => ({
+        ...portfolioEpic,
+        capabilities: (portfolioEpic.capabilities || []).map(
+          (capability: any) => ({
+            ...capability,
+            epics: (capability.epics || []).map((epic: any) => ({
+              ...epic,
+              stories: epic.stories || [],
+            })),
+          })
+        ),
+      })
+    ),
+  }));
 }
 
-export function oldParseXLSFile(file: File) : any{
+export function oldParseXLSFile(file: File): any {
   const reader = new FileReader();
-  let results : any;
+  let results: any;
   reader.onload = (event) => {
     const data = event.target?.result;
-    const workbook = XLSX.read(data, { type: 'binary' }, { cellStyles: true });
+    const workbook = XLSX.read(data, { type: "binary" }, { cellStyles: true });
     const sheetNameList = workbook.SheetNames;
-    const worksheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetNameList[0]]);
+    const worksheetData = XLSX.utils.sheet_to_json(
+      workbook.Sheets[sheetNameList[0]]
+    );
     //now I need all of the rows after the first one (first one is headers)
-    let rows = workbook.Sheets[sheetNameList[0]]['!rows'].slice(1);
-    rows = Array.from(rows, item => item === undefined ? {level : 0} : item);
+    let rows = workbook.Sheets[sheetNameList[0]]["!rows"].slice(1);
+    rows = Array.from(rows, (item) =>
+      item === undefined ? { level: 0 } : item
+    );
     //now combine the worksheet data with the rows
-    const combinedData = worksheetData.map((item : any, index : any) => {
-      return {...item, ...rows[index], id: index}
+    const combinedData = worksheetData.map((item: any, index: any) => {
+      return { ...item, ...rows[index], id: index };
     });
     const processedData = processData(combinedData);
-    console.log(processedData)
+    console.log(processedData);
     results = processedData;
   };
   reader.readAsArrayBuffer(file);
-  console.log(results)
+  console.log(results);
   return results;
 }
 
 export function parseXLSFile(file: File): Promise<any> {
   return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-          const data = event.target?.result;
-          const workbook = XLSX.read(data, { type: 'binary' }, { cellStyles: true });
-          const sheetNameList = workbook.SheetNames;
-          const worksheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetNameList[0]]);
-          let rows = workbook.Sheets[sheetNameList[0]]['!rows'].slice(1);
-          rows = Array.from(rows, item => item === undefined ? {level : 0} : item);
-          const combinedData = worksheetData.map((item : any, index : any) => {
-              return {...item, ...rows[index], id: index}
-          });
-          const processedData = processData(combinedData);
-          const typedData = convertToTypedData(processedData);
-          resolve(typedData);
-      };
-      reader.onerror = (error) => reject(error);
-      reader.readAsArrayBuffer(file);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const data = event.target?.result;
+      const workbook = XLSX.read(
+        data,
+        { type: "binary" },
+        { cellStyles: true }
+      );
+      const sheetNameList = workbook.SheetNames;
+      const worksheetData = XLSX.utils.sheet_to_json(
+        workbook.Sheets[sheetNameList[0]]
+      );
+      console.log("Worksheet Data:", worksheetData);
+      let rows = workbook.Sheets[sheetNameList[0]]["!rows"].slice(1);
+      rows = Array.from(rows, (item) =>
+        item === undefined ? { level: 0 } : item
+      );
+      const combinedData = worksheetData.map((item: any, index: any) => {
+        return { ...item, ...rows[index], id: index };
+      });
+      console.log("Combined Data:", combinedData);
+      const processedData = processData(combinedData);
+      console.log("Processed Data:", processedData);
+      const typedData = convertToTypedData(processedData);
+      console.log("Typed Data:", typedData);
+      resolve(typedData);
+    };
+    reader.onerror = (error) => reject(error);
+    reader.readAsArrayBuffer(file);
   });
 }
