@@ -1,11 +1,11 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Capability, TaskOrder } from "./data-manipulation";
 import domtoimage from "dom-to-image";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
-} from "@/components/ui/hover-card"
+} from "@/components/ui/hover-card";
 import "react-tooltip/dist/react-tooltip.css";
 
 export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
@@ -51,10 +51,7 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
   }
 
   return (
-    <div
-      ref={componentRef}
-      className="w-full h-full flex flex-col"
-    >
+    <div ref={componentRef} className="w-full h-full flex flex-col">
       <Title screenshotFunction={handleScreenshot} />
       <HeaderRow nextEightQuarters={nextEightQuarters} />
       {taskOrders
@@ -76,18 +73,56 @@ function Title({
 }: {
   screenshotFunction: (e: any) => void;
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [title, setTitle] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const currentYear = new Date().getFullYear();
   const previousYear = currentYear - 1;
   const nextYear = currentYear + 1;
+
+  const defaultTitle = `Roadmap: October ${previousYear} - October ${nextYear}`;
+
+  const handleTitleClick = () => {
+    setIsEditing(true);
+    setTitle(defaultTitle);
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value);
+  };
+
+  const handleTitleBlur = () => {
+    if (inputRef.current && inputRef.current.value.trim() === "") {
+      setTitle("");
+    }
+    setIsEditing(false);
+  };
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isEditing]);
 
   return (
     <form className="text-4xl w-full px-5">
       <div className="flex flex-row justify-between w-full">
         <div className="flex flex-row">
-          <div className="font-bold m-2">Roadmap:</div>
-          <div className="m-2">
-            October {previousYear} - October {nextYear}
-          </div>
+          {isEditing ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={title}
+              onChange={handleTitleChange}
+              onBlur={handleTitleBlur}
+              className="font-bold m-2 bg-transparent focus:outline-none"
+            />
+          ) : (
+            <div className="font-bold m-2" onClick={handleTitleClick}>
+              {title || defaultTitle}
+            </div>
+          )}
         </div>
         <button
           className="text-sm bg-blue-500 rounded-md p-1 m-2 hover:bg-blue-700 hover:text-white"
@@ -95,12 +130,6 @@ function Title({
         >
           Save as Image
         </button>
-        {/* <button 
-          className="text-xs bg-blue-500 rounded-md p-1 m-2 hover:bg-blue-700 hover:text-white"
-          onClick={toggleExpanded}
-        >
-          Expand/Collapse All
-        </button> */}
       </div>
     </form>
   );
@@ -167,7 +196,10 @@ function TaskOrderDisplay({
   const gridRowForTaskOrder = `1 / ${2 + numberOfRows}`;
 
   return (
-    <div className="flex-1 flex flex-row w-full border border-red-100 rounded-md" key={index}>
+    <div
+      className="flex-1 flex flex-row w-full border border-red-100 rounded-md"
+      key={index}
+    >
       <div className="h-full w-full grid grid-cols-9">
         <div
           style={{
@@ -233,8 +265,8 @@ function CapabilityDisplay({
     const gridColumn = `${beginningIndex + 2} / ${endIndex + 3}`;
     return gridColumn;
   }
-  const epics : any = capability.epics;
-  console.log(epics)
+  const epics: any = capability.epics;
+  console.log(epics);
   if (gridColumn === "") {
     return <></>;
   }
@@ -265,8 +297,10 @@ function CapabilityDisplay({
         <HoverCardContent className="w-96">
           <div className="font-bold text-lg">{capability.name}</div>
           <ul>
-            {epics.map((epic : any, i : number) => (
-              <li className="text-xs" key={i}>{epic?.Summary}</li>
+            {epics.map((epic: any, i: number) => (
+              <li className="text-xs" key={i}>
+                {epic?.Summary}
+              </li>
             ))}
           </ul>
         </HoverCardContent>
