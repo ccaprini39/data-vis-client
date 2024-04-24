@@ -9,14 +9,11 @@ import {
 import "react-tooltip/dist/react-tooltip.css";
 
 export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
-  const nextEightQuarters = getNextEightQuarters();
-  function getNextEightQuarters() {
-    //first get the date
-    const today = new Date();
-    //then get the current year
-    const currentYear = today.getFullYear();
-    //now get the last 2 digits of the year sliced from the string
-    const lastTwoDigits = currentYear.toString().slice(2);
+  const [startingYear, setStartingYear] = useState(new Date().getFullYear());
+  const nextEightQuarters = getNextEightQuarters(startingYear);
+
+  function getNextEightQuarters(year: number) {
+    const lastTwoDigits = year.toString().slice(2);
     const lastTwoDigitsAsNumber = parseInt(lastTwoDigits);
 
     return [
@@ -50,9 +47,29 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
     }
   }
 
+  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const year = parseInt(e.target.value);
+    setStartingYear(year);
+  };
+
   return (
     <div ref={componentRef} className="w-full h-full flex flex-col">
-      <Title screenshotFunction={handleScreenshot} />
+      <div className="flex items-center mb-4">
+        <label htmlFor="year-input" className="mr-2">
+          Starting Year:
+        </label>
+        <input
+          id="year-input"
+          type="number"
+          value={startingYear}
+          onChange={handleYearChange}
+          className="border px-2 py-1 rounded"
+        />
+      </div>
+      <Title
+        screenshotFunction={handleScreenshot}
+        startingYear={startingYear}
+      />
       <HeaderRow nextEightQuarters={nextEightQuarters} />
       {taskOrders
         ? taskOrders.map((to, index) => (
@@ -70,16 +87,17 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
 
 function Title({
   screenshotFunction,
+  startingYear,
 }: {
   screenshotFunction: (e: any) => void;
+  startingYear: number;
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const currentYear = new Date().getFullYear();
-  const previousYear = currentYear - 1;
-  const nextYear = currentYear + 1;
+  const previousYear = startingYear - 1;
+  const nextYear = startingYear + 1;
 
   const defaultTitle = `Roadmap: October ${previousYear} - October ${nextYear}`;
 
@@ -108,7 +126,7 @@ function Title({
   return (
     <form className="text-4xl w-full px-5">
       <div className="flex flex-row justify-between w-full">
-        <div className="flex flex-row">
+        <div className="flex flex-row flex-1">
           {isEditing ? (
             <input
               ref={inputRef}
@@ -116,10 +134,13 @@ function Title({
               value={title}
               onChange={handleTitleChange}
               onBlur={handleTitleBlur}
-              className="font-bold m-2 bg-transparent focus:outline-none"
+              className="font-bold m-2 bg-transparent focus:outline-none w-full"
             />
           ) : (
-            <div className="font-bold m-2" onClick={handleTitleClick}>
+            <div
+              className="font-bold m-2 cursor-text"
+              onClick={handleTitleClick}
+            >
               {title || defaultTitle}
             </div>
           )}
