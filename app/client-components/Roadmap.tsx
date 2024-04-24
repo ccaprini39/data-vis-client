@@ -198,8 +198,9 @@ function TaskOrderDisplay({
   nextEightQuarters: string[];
 }) {
   const capabilities = taskOrder.portfolioEpics
-    .map((pe) => pe.capabilities)
-    .flat();
+    ? taskOrder.portfolioEpics.map((pe) => pe.capabilities).flat()
+    : [];
+
   function getShadeOfPurple(index: number) {
     const shadesOfPurple = [
       "#4B0082", // Indigo
@@ -257,26 +258,38 @@ function CapabilityDisplay({
   color: string;
   nextEightQuarters: string[];
 }) {
-  // const [expanded, setExpanded] = useState(false);
-  // function toggleExpanded() {
-  //   setExpanded(!expanded);
-  // }
-
   const gridRowIndex = index + 1;
   let gridRow = `${gridRowIndex} / ${gridRowIndex + 1}`;
-  let gridColumn = getGridColumns(nextEightQuarters, capability.labels);
-  function getGridColumns(nextEightQuarters: string[], labels: string[]) {
-    if (labels.length === 0) {
+  let gridColumn = getGridColumns(
+    nextEightQuarters,
+    capability.plannedStart,
+    capability.plannedEnd
+  );
+
+  function getGridColumns(
+    nextEightQuarters: string[],
+    plannedStart: string,
+    plannedEnd: string
+  ) {
+    if (!plannedStart || !plannedEnd) {
       return "";
     }
 
-    const beginningQuarter = labels[0];
-    const endQuarter = labels[labels.length - 1];
+    const plannedStartParts = plannedStart.split("/");
+    const plannedEndParts = plannedEnd.split("/");
+
+    const plannedStartQuarter = `FY${plannedStartParts[2].slice(
+      -2
+    )}Q${Math.ceil(parseInt(plannedStartParts[0]) / 3)}`;
+    const plannedEndQuarter = `FY${plannedEndParts[2].slice(-2)}Q${Math.ceil(
+      parseInt(plannedEndParts[0]) / 3
+    )}`;
+
     const beginningIndex = nextEightQuarters.findIndex(
-      (quarter) => quarter === beginningQuarter
+      (quarter) => quarter === plannedStartQuarter
     );
     const endIndex = nextEightQuarters.findIndex(
-      (quarter) => quarter === endQuarter
+      (quarter) => quarter === plannedEndQuarter
     );
 
     if (beginningIndex === -1 || endIndex === -1) {
@@ -288,21 +301,12 @@ function CapabilityDisplay({
   }
   const epics: any = capability.epics;
   console.log(epics);
+
   if (gridColumn === "") {
     return <></>;
   }
+
   return (
-    // <div
-    //   className={`rounded-md ${
-    //     expanded ? "" : "h-4 overflow-ellipsis"
-    //   } m-0 text-xs border px-1 overflow-hidden cursor-s-resize`}
-    //   onClick={toggleExpanded}
-    //   style={{
-    //     gridColumn: gridColumn,
-    //     gridRow: gridRow,
-    //     backgroundColor: color,
-    //   }}
-    // >
     <div
       className={`rounded-md text-xs border px-4 py-1 whitespace-normal flex items-center justify-center text-center`}
       style={{
@@ -320,7 +324,7 @@ function CapabilityDisplay({
           <ul>
             {epics.map((epic: any, i: number) => (
               <li className="text-xs" key={i}>
-                {epic?.Summary}
+                {epic?.name}
               </li>
             ))}
           </ul>
