@@ -55,7 +55,7 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
   return (
     <div ref={componentRef} className="w-full h-full flex flex-col">
       <div className="flex items-center mb-4">
-        <label htmlFor="year-input" className="mr-2">
+        <label htmlFor="year-input" className="mr-2 mx-2">
           Starting Year:
         </label>
         <input
