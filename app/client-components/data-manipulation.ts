@@ -2,7 +2,8 @@ const XLSX = require("xlsx");
 
 function transformData(data: any) {
   return data.map((item: any) => {
-    const issueType = item["Issue Type"]?.trim().toLowerCase();
+    let issueType = (item["Issue Type"] || "").trim().toLowerCase(); // Handle case where "Issue Type" is undefined
+    const isTaskOrder = !issueType; // Determine if the item is a Task Order
     const plannedStartDate = item["Planned Start"]
       ? excelDateToJSDate(item["Planned Start"])
       : "";
@@ -17,6 +18,7 @@ function transformData(data: any) {
       plannedStart: plannedStartDate,
       plannedEnd: plannedEndDate,
       labels,
+      isTaskOrder, // Include the isTaskOrder property
       ...item,
     };
   });
@@ -38,11 +40,9 @@ function categorizeAndStructureTasks(data: any[]) {
   let currentEpic: any = null;
 
   data.forEach((item) => {
-    if (item.type === "task order") {
+    if (item.isTaskOrder) {
       currentTaskOrder = { ...item, portfolioEpics: [] };
-      if (!currentTaskOrder.name) {
-        currentTaskOrder.name = "undefined";
-      }
+      currentTaskOrder.name = item.name || "undefined";
       taskOrders.push(currentTaskOrder);
       currentPortfolioEpic = null;
       currentCapability = null;
@@ -64,72 +64,73 @@ function categorizeAndStructureTasks(data: any[]) {
         currentCapability = { ...item, epics: [] };
         currentPortfolioEpic.capabilities.push(currentCapability);
         currentEpic = null;
-      } else if (currentTaskOrder) {
-        currentPortfolioEpic = { name: "", capabilities: [] };
-        currentCapability = { ...item, epics: [] };
-        currentPortfolioEpic.capabilities.push(currentCapability);
-        currentTaskOrder.portfolioEpics.push(currentPortfolioEpic);
       } else {
-        currentTaskOrder = { name: "undefined", portfolioEpics: [] };
         currentPortfolioEpic = { name: "", capabilities: [] };
         currentCapability = { ...item, epics: [] };
         currentPortfolioEpic.capabilities.push(currentCapability);
-        currentTaskOrder.portfolioEpics.push(currentPortfolioEpic);
-        taskOrders.push(currentTaskOrder);
+        if (currentTaskOrder) {
+          currentTaskOrder.portfolioEpics.push(currentPortfolioEpic);
+        } else {
+          currentTaskOrder = {
+            name: "undefined",
+            portfolioEpics: [currentPortfolioEpic],
+          };
+          taskOrders.push(currentTaskOrder);
+        }
       }
     } else if (item.type === "epic") {
       if (currentCapability) {
         currentEpic = { ...item, stories: [] };
         currentCapability.epics.push(currentEpic);
-      } else if (currentPortfolioEpic) {
-        currentCapability = { name: "", epics: [] };
-        currentEpic = { ...item, stories: [] };
-        currentCapability.epics.push(currentEpic);
-        currentPortfolioEpic.capabilities.push(currentCapability);
-      } else if (currentTaskOrder) {
-        currentPortfolioEpic = { name: "", capabilities: [] };
-        currentCapability = { name: "", epics: [] };
-        currentEpic = { ...item, stories: [] };
-        currentCapability.epics.push(currentEpic);
-        currentPortfolioEpic.capabilities.push(currentCapability);
-        currentTaskOrder.portfolioEpics.push(currentPortfolioEpic);
       } else {
-        currentTaskOrder = { name: "undefined", portfolioEpics: [] };
-        currentPortfolioEpic = { name: "", capabilities: [] };
         currentCapability = { name: "", epics: [] };
         currentEpic = { ...item, stories: [] };
         currentCapability.epics.push(currentEpic);
-        currentPortfolioEpic.capabilities.push(currentCapability);
-        currentTaskOrder.portfolioEpics.push(currentPortfolioEpic);
-        taskOrders.push(currentTaskOrder);
+        if (currentPortfolioEpic) {
+          currentPortfolioEpic.capabilities.push(currentCapability);
+        } else {
+          currentPortfolioEpic = {
+            name: "",
+            capabilities: [currentCapability],
+          };
+          if (currentTaskOrder) {
+            currentTaskOrder.portfolioEpics.push(currentPortfolioEpic);
+          } else {
+            currentTaskOrder = {
+              name: "undefined",
+              portfolioEpics: [currentPortfolioEpic],
+            };
+            taskOrders.push(currentTaskOrder);
+          }
+        }
       }
     } else if (item.type === "story") {
       if (currentEpic) {
         currentEpic.stories.push(item);
-      } else if (currentCapability) {
-        currentEpic = { name: "", stories: [item] };
-        currentCapability.epics.push(currentEpic);
-      } else if (currentPortfolioEpic) {
-        currentCapability = { name: "", epics: [] };
-        currentEpic = { name: "", stories: [item] };
-        currentCapability.epics.push(currentEpic);
-        currentPortfolioEpic.capabilities.push(currentCapability);
-      } else if (currentTaskOrder) {
-        currentPortfolioEpic = { name: "", capabilities: [] };
-        currentCapability = { name: "", epics: [] };
-        currentEpic = { name: "", stories: [item] };
-        currentCapability.epics.push(currentEpic);
-        currentPortfolioEpic.capabilities.push(currentCapability);
-        currentTaskOrder.portfolioEpics.push(currentPortfolioEpic);
       } else {
-        currentTaskOrder = { name: "undefined", portfolioEpics: [] };
-        currentPortfolioEpic = { name: "", capabilities: [] };
-        currentCapability = { name: "", epics: [] };
         currentEpic = { name: "", stories: [item] };
-        currentCapability.epics.push(currentEpic);
-        currentPortfolioEpic.capabilities.push(currentCapability);
-        currentTaskOrder.portfolioEpics.push(currentPortfolioEpic);
-        taskOrders.push(currentTaskOrder);
+        if (currentCapability) {
+          currentCapability.epics.push(currentEpic);
+        } else {
+          currentCapability = { name: "", epics: [currentEpic] };
+          if (currentPortfolioEpic) {
+            currentPortfolioEpic.capabilities.push(currentCapability);
+          } else {
+            currentPortfolioEpic = {
+              name: "",
+              capabilities: [currentCapability],
+            };
+            if (currentTaskOrder) {
+              currentTaskOrder.portfolioEpics.push(currentPortfolioEpic);
+            } else {
+              currentTaskOrder = {
+                name: "undefined",
+                portfolioEpics: [currentPortfolioEpic],
+              };
+              taskOrders.push(currentTaskOrder);
+            }
+          }
+        }
       }
     }
   });
