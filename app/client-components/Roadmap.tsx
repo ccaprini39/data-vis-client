@@ -160,28 +160,28 @@ function HeaderRow({ nextEightQuarters }: { nextEightQuarters: string[] }) {
   return (
     <div className="h-8 flex flex-row">
       <div className="flex-1"></div>
-      <div className="flex-1 flex flex-col text-center rounded-md bg-purple-900">
+      <div className="flex-1 flex flex-col text-white text-center rounded-md bg-purple-900">
         {nextEightQuarters[0]}
       </div>
-      <div className="flex-1 flex flex-col text-center rounded-md bg-purple-700">
+      <div className="flex-1 flex flex-col text-white text-center rounded-md bg-purple-700">
         {nextEightQuarters[1]}
       </div>
-      <div className="flex-1 flex flex-col text-center rounded-md bg-purple-500">
+      <div className="flex-1 flex flex-col text-white text-center rounded-md bg-purple-500">
         {nextEightQuarters[2]}
       </div>
-      <div className="flex-1 flex flex-col text-center rounded-md bg-purple-300">
+      <div className="flex-1 flex flex-col text-white text-center rounded-md bg-purple-300">
         {nextEightQuarters[3]}
       </div>
-      <div className="flex-1 flex flex-col text-center rounded-md bg-purple-900">
+      <div className="flex-1 flex flex-col text-white text-center rounded-md bg-purple-900">
         {nextEightQuarters[4]}
       </div>
-      <div className="flex-1 flex flex-col text-center rounded-md bg-purple-700">
+      <div className="flex-1 flex flex-col text-white text-center rounded-md bg-purple-700">
         {nextEightQuarters[5]}
       </div>
-      <div className="flex-1 flex flex-col text-center rounded-md bg-purple-500">
+      <div className="flex-1 flex flex-col text-white text-center rounded-md bg-purple-500">
         {nextEightQuarters[6]}
       </div>
-      <div className="flex-1 flex flex-col text-center rounded-md bg-purple-300">
+      <div className="flex-1 flex flex-col text-white text-center rounded-md bg-purple-300">
         {nextEightQuarters[7]}
       </div>
     </div>
@@ -229,7 +229,7 @@ function TaskOrderDisplay({
             gridRow: gridRowForTaskOrder,
             backgroundColor: color,
           }}
-          className="flex items-center justify-center"
+          className="flex items-center justify-center text-white rounded-md"
         >
           {taskOrder.name}
         </div>

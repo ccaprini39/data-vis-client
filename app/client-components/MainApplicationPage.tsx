@@ -4,6 +4,7 @@ import Roadmap from "./Roadmap";
 import { ModeToggle } from "@/components/ModeToggleButton";
 
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import EpicsView from "./EpicsView";
 
 
 export default function MainApplicationPage() {
@@ -68,7 +69,7 @@ export default function MainApplicationPage() {
           )}
         </TabsContent>
         <TabsContent value="epic" className="p-4">
-          <div>Epics View</div>
+          <EpicsView taskOrders={tableData} />
         </TabsContent>
       </Tabs>
     </div>
