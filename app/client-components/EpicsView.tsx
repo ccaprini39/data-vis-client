@@ -28,8 +28,8 @@ export default function EpicsView({ taskOrders }: { taskOrders: TaskOrder[] }) {
     <div>
       {/* {todaysDateString} */}
       {taskOrders.map((taskOrder, index) => (
-        <div className="border-1">
-          <TaskOrderDiplay key={taskOrder.name} taskOrder={taskOrder} index={index}/>
+        <div key={taskOrder.name} className="border-1">
+          <TaskOrderDiplay taskOrder={taskOrder} index={index}/>
         </div>
       ))}
     </div>
