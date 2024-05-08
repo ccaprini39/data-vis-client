@@ -7,6 +7,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import "react-tooltip/dist/react-tooltip.css";
+import { Button } from "@/components/ui/button";
 
 export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
   const [startingYear, setStartingYear] = useState(new Date().getFullYear());
@@ -54,7 +55,7 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
 
   return (
     <div ref={componentRef} className="w-full h-full flex flex-col">
-      <div className="flex items-center mb-4">
+      <div className="flex items-center">
         <label htmlFor="year-input" className="mr-2 mx-2">
           Starting Year:
         </label>
@@ -145,12 +146,11 @@ function Title({
             </div>
           )}
         </div>
-        <button
-          className="text-sm bg-blue-500 rounded-md p-1 m-2 hover:bg-blue-700 hover:text-white"
+        <Button
           onClick={screenshotFunction}
         >
           Save as Image
-        </button>
+        </Button>
       </div>
     </form>
   );
