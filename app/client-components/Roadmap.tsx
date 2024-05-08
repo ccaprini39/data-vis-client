@@ -201,6 +201,10 @@ function TaskOrderDisplay({
     ? taskOrder.portfolioEpics.map((pe) => pe.capabilities).flat()
     : [];
 
+  if (capabilities.length === 0) {
+    return <></>;
+  }
+
   function getShadeOfPurple(index: number) {
     const shadesOfPurple = [
       "#4B0082", // Indigo
