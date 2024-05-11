@@ -55,23 +55,29 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
 
   return (
     <div className="w-full h-full flex flex-col">
-      <div className="flex items-center">
-        <label htmlFor="year-input" className="mr-2 mx-2">
-          Starting Year:
-        </label>
-        <input
-          id="year-input"
-          type="number"
-          value={startingYear}
-          onChange={handleYearChange}
-          className="border px-2 py-1 rounded"
-        />
+      <div className="flex justify-between items-center">
+        <div>
+          <label htmlFor="year-input" className="mr-2 mx-2">
+            Starting Year:
+          </label>
+          <input
+            id="year-input"
+            type="number"
+            value={startingYear}
+            onChange={handleYearChange}
+            className="border px-2 py-1 rounded"
+          />
+        </div>
+        <Button
+          onClick={handleScreenshot}
+        >
+          Save as Image
+        </Button>
       </div>
-      <Title
-        screenshotFunction={handleScreenshot}
-        startingYear={startingYear}
-      />
       <div ref={componentRef}>
+        <Title
+          startingYear={startingYear}
+        />
         <HeaderRow nextEightQuarters={nextEightQuarters} />
         {taskOrders
           ? taskOrders.map((to, index) => (
@@ -89,10 +95,8 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
 }
 
 function Title({
-  screenshotFunction,
   startingYear,
 }: {
-  screenshotFunction: (e: any) => void;
   startingYear: number;
 }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -148,11 +152,6 @@ function Title({
             </div>
           )}
         </div>
-        <Button
-          onClick={screenshotFunction}
-        >
-          Save as Image
-        </Button>
       </div>
     </form>
   );
