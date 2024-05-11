@@ -158,31 +158,56 @@ function Title({
 }
 
 function HeaderRow({ nextEightQuarters }: { nextEightQuarters: string[] }) {
+
   return (
     <div className="h-8 flex flex-row">
       <div className="flex-1"></div>
-      <div className="flex-1 flex flex-col text-white text-center rounded-md bg-purple-900">
+      <div 
+        className="flex-1 flex flex-col text-white text-center rounded-md"
+        style={{ backgroundColor: "#4C1D95" }}
+      >
         {nextEightQuarters[0]}
       </div>
-      <div className="flex-1 flex flex-col text-white text-center rounded-md bg-purple-700">
+      <div 
+        className="flex-1 flex flex-col text-white text-center rounded-md"
+        style={{ backgroundColor: "#7C3AED" }}
+      >
         {nextEightQuarters[1]}
       </div>
-      <div className="flex-1 flex flex-col text-white text-center rounded-md bg-purple-500">
+      <div 
+        className="flex-1 flex flex-col text-white text-center rounded-md"
+        style={{ backgroundColor: "#8B5CF6" }}
+      >
         {nextEightQuarters[2]}
       </div>
-      <div className="flex-1 flex flex-col text-white text-center rounded-md bg-purple-300">
+      <div 
+        className="flex-1 flex flex-col text-white text-center rounded-md"
+        style={{ backgroundColor: "#A78BFA" }}
+      >
         {nextEightQuarters[3]}
       </div>
-      <div className="flex-1 flex flex-col text-white text-center rounded-md bg-purple-900">
+      <div 
+        className="flex-1 flex flex-col text-white text-center rounded-md"
+        style={{ backgroundColor: "#4C1D95" }}
+      >
         {nextEightQuarters[4]}
       </div>
-      <div className="flex-1 flex flex-col text-white text-center rounded-md bg-purple-700">
+      <div 
+        className="flex-1 flex flex-col text-white text-center rounded-md"
+        style={{ backgroundColor: "#7C3AED" }}
+      >
         {nextEightQuarters[5]}
       </div>
-      <div className="flex-1 flex flex-col text-white text-center rounded-md bg-purple-500">
+      <div 
+        className="flex-1 flex flex-col text-white text-center rounded-md"
+        style={{ backgroundColor: "#8B5CF6" }}
+      >
         {nextEightQuarters[6]}
       </div>
-      <div className="flex-1 flex flex-col text-white text-center rounded-md bg-purple-300">
+      <div 
+        className="flex-1 flex flex-col text-white text-center rounded-md"
+        style={{ backgroundColor: "#A78BFA" }}
+      >
         {nextEightQuarters[7]}
       </div>
     </div>
@@ -207,15 +232,14 @@ function TaskOrderDisplay({
   }
 
   function getShadeOfPurple(index: number) {
+    let colorIndex = index % 4;
     const shadesOfPurple = [
-      "#4B0082", // Indigo
-      "#9932CC", // DarkOrchid
-      "#9370DB", // MediumPurple
-      "#BA55D3", // MediumOrchid
-      "#DA70D6", // Orchid
-      "#EE82EE", // Violet
+      "#4C1D95", // DarkOrchid
+      "#7C3AED", // MediumPurple
+      "#8B5CF6", // "LightPurple
+      "#A78BFA", // MediumOrchid
     ];
-    return shadesOfPurple[index];
+    return shadesOfPurple[colorIndex];
   }
   const color = getShadeOfPurple(index);
   const firstColumn = "1";

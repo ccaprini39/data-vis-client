@@ -21,7 +21,24 @@ export default function MainApplicationPage() {
       if (selectedFile) {
         const results = await parseXLSFile(selectedFile);
         console.log(results);
-        setTableData(results);
+        //now look through the results and convert them to TaskOrder objects
+        let taskOrders: TaskOrder[] = results;
+        //now remove the task orders that do not have any portfolio epics or capabilities
+        taskOrders = taskOrders.filter(
+          (taskOrder) =>
+            taskOrder.portfolioEpics &&
+            taskOrder.portfolioEpics.length > 0 &&
+            taskOrder.portfolioEpics.some(
+              (portfolioEpic) =>
+                portfolioEpic.capabilities &&
+                portfolioEpic.capabilities.length > 0 &&
+                portfolioEpic.capabilities.some(
+                  (capability) =>
+                    capability.epics && capability.epics.length > 0
+                )
+            )
+        );
+        setTableData(taskOrders);
       }
     }
     fetchAndConvertData();

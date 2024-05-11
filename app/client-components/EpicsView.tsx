@@ -46,15 +46,14 @@ function TaskOrderDiplay({ taskOrder, index }: { taskOrder: TaskOrder, index: nu
     return <></>;
   }
   function getShadeOfPurple(index: number) {
+    let colorIndex = index % 4;
     const shadesOfPurple = [
-      "#4B0082", // Indigo
-      "#9932CC", // DarkOrchid
-      "#9370DB", // MediumPurple
-      "#BA55D3", // MediumOrchid
-      "#DA70D6", // Orchid
-      "#EE82EE", // Violet
+      "#4C1D95", // DarkOrchid
+      "#7C3AED", // MediumPurple
+      "#8B5CF6", // "LightPurple
+      "#A78BFA", // MediumOrchid
     ];
-    return shadesOfPurple[index];
+    return shadesOfPurple[colorIndex];
   }
   const color = getShadeOfPurple(index);
   return (
@@ -62,7 +61,7 @@ function TaskOrderDiplay({ taskOrder, index }: { taskOrder: TaskOrder, index: nu
       className="flex flex-col bg-inherit rounded-md border w-full"
       style={{ backgroundColor: color }}
     >
-      <div className="flex-0 mx-auto text-lg my-auto">{taskOrder.name}</div>
+      <div className="flex-0 mx-auto text-white text-lg my-auto">{taskOrder.name}</div>
       <Table className="m-0 text-xs text-white">
         <TableHeader>
           <TableRow>
