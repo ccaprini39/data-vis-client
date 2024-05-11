@@ -54,7 +54,7 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
   };
 
   return (
-    <div ref={componentRef} className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col">
       <div className="flex items-center">
         <label htmlFor="year-input" className="mr-2 mx-2">
           Starting Year:
@@ -71,9 +71,10 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
         screenshotFunction={handleScreenshot}
         startingYear={startingYear}
       />
-      <HeaderRow nextEightQuarters={nextEightQuarters} />
-      {taskOrders
-        ? taskOrders.map((to, index) => (
+      <div ref={componentRef}>
+        <HeaderRow nextEightQuarters={nextEightQuarters} />
+        {taskOrders
+          ? taskOrders.map((to, index) => (
             <TaskOrderDisplay
               key={index}
               taskOrder={to}
@@ -81,7 +82,8 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
               nextEightQuarters={nextEightQuarters}
             />
           ))
-        : null}
+          : null}
+      </div>
     </div>
   );
 }
@@ -321,7 +323,7 @@ function CapabilityDisplay({
     >
       <HoverCard>
         <HoverCardTrigger asChild>
-          <div>{capability.name}</div>
+          <div className="text-white">{capability.name}</div>
         </HoverCardTrigger>
         <HoverCardContent className="w-96">
           <div className="font-bold text-lg">{capability.name}</div>
