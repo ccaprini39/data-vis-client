@@ -329,7 +329,6 @@ function CapabilityDisplay({
     return gridColumn;
   }
   const epics: any = capability.epics;
-  console.log(epics);
 
   if (gridColumn === "") {
     return <></>;

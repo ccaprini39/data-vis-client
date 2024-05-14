@@ -5,11 +5,12 @@ import { ModeToggle } from "@/components/ModeToggleButton";
 
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import EpicsView from "./EpicsView";
+import { sampleData } from "./temp";
 
 
 export default function MainApplicationPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [tableData, setTableData] = useState<TaskOrder[]>([]);
+  const [tableData, setTableData] = useState<TaskOrder[]>(sampleData as any[]);
 
   async function handleResetFileSelection() {
     //reload to /
@@ -51,7 +52,7 @@ export default function MainApplicationPage() {
 
   return (
     <div className="w-full h-full m-5">
-      <Tabs defaultValue="file" className="w-full">
+      <Tabs defaultValue="roadmap" className="w-full">
         <TabsList className="flex flex-row justify-between">
           <div className="flex gap-1">
             <TabsTrigger value="file">File</TabsTrigger>
