@@ -48,10 +48,10 @@ function TaskOrderDiplay({ taskOrder, index }: { taskOrder: TaskOrder, index: nu
   function getShadeOfPurple(index: number) {
     let colorIndex = index % 4;
     const shadesOfPurple = [
-      "#4C1D95", // DarkOrchid
-      "#7C3AED", // MediumPurple
-      "#8B5CF6", // "LightPurple
-      "#A78BFA", // MediumOrchid
+      "#4C1D95",
+      "#000080",
+      "#6022B1",
+      "#00008B", 
     ];
     return shadesOfPurple[colorIndex];
   }

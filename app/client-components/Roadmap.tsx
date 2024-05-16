@@ -170,19 +170,19 @@ function HeaderRow({ nextEightQuarters }: { nextEightQuarters: string[] }) {
       </div>
       <div 
         className="flex-1 flex flex-col text-white text-center rounded-md"
-        style={{ backgroundColor: "#7C3AED" }}
+        style={{ backgroundColor: "#000080" }}
       >
         {nextEightQuarters[1]}
       </div>
       <div 
         className="flex-1 flex flex-col text-white text-center rounded-md"
-        style={{ backgroundColor: "#8B5CF6" }}
+        style={{ backgroundColor: "#6022B1" }}
       >
         {nextEightQuarters[2]}
       </div>
       <div 
         className="flex-1 flex flex-col text-white text-center rounded-md"
-        style={{ backgroundColor: "#A78BFA" }}
+        style={{ backgroundColor: "#00008B" }}
       >
         {nextEightQuarters[3]}
       </div>
@@ -194,19 +194,19 @@ function HeaderRow({ nextEightQuarters }: { nextEightQuarters: string[] }) {
       </div>
       <div 
         className="flex-1 flex flex-col text-white text-center rounded-md"
-        style={{ backgroundColor: "#7C3AED" }}
+        style={{ backgroundColor: "#000080" }}
       >
         {nextEightQuarters[5]}
       </div>
       <div 
         className="flex-1 flex flex-col text-white text-center rounded-md"
-        style={{ backgroundColor: "#8B5CF6" }}
+        style={{ backgroundColor: "#6022B1" }}
       >
         {nextEightQuarters[6]}
       </div>
       <div 
         className="flex-1 flex flex-col text-white text-center rounded-md"
-        style={{ backgroundColor: "#A78BFA" }}
+        style={{ backgroundColor: "#00008B" }}
       >
         {nextEightQuarters[7]}
       </div>
@@ -234,10 +234,10 @@ function TaskOrderDisplay({
   function getShadeOfPurple(index: number) {
     let colorIndex = index % 4;
     const shadesOfPurple = [
-      "#4C1D95", // DarkOrchid
-      "#7C3AED", // MediumPurple
-      "#8B5CF6", // "LightPurple
-      "#A78BFA", // MediumOrchid
+      "#4C1D95",
+      "#000080",
+      "#6022B1",
+      "#00008B", 
     ];
     return shadesOfPurple[colorIndex];
   }
@@ -248,7 +248,7 @@ function TaskOrderDisplay({
 
   return (
     <div
-      className="flex-1 flex flex-row w-full border border-red-100 rounded-md"
+      className="flex-1 flex flex-row w-full border border-black rounded-md shadow-sm"
       key={index}
     >
       <div className="h-full w-full grid grid-cols-9">
