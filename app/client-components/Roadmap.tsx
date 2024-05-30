@@ -434,7 +434,7 @@ function MileStones() {
     //this one is a yellow filled circle in the center of the div
     const circleChar = '\u25CF';
     return (
-      <div className="flex justify-center text-2xl z-50 text-yellow-600  items-center select-none">
+      <div className="flex justify-center text-2xl z-50 text-yellow-300  items-center select-none">
         <TooltipProvider >
           <Tooltip delayDuration={10}>
             <TooltipTrigger>
