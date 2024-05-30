@@ -413,7 +413,7 @@ function MileStones() {
     return (
       <div className="flex justify-center text-2xl z-50 w-full items-center select-none">
         <TooltipProvider >
-          <Tooltip delayDuration={5}>
+          <Tooltip delayDuration={10}>
             <TooltipTrigger>
               <div className="opacity-0">oooo</div>
             </TooltipTrigger>
@@ -431,7 +431,7 @@ function MileStones() {
     return (
       <div className="flex justify-center text-2xl z-50 text-orange-600  items-center select-none">
         <TooltipProvider >
-          <Tooltip delayDuration={0}>
+          <Tooltip delayDuration={10}>
             <TooltipTrigger>
               <div>{diamondChar}</div>
             </TooltipTrigger>
@@ -451,7 +451,7 @@ function MileStones() {
 
       <div className="flex justify-center text-2xl z-50 text-gray-600  items-center select-none">
         <TooltipProvider >
-          <Tooltip delayDuration={0}>
+          <Tooltip delayDuration={10}>
             <TooltipTrigger>
               <div>{triangleChar}</div>
             </TooltipTrigger>
@@ -469,7 +469,7 @@ function MileStones() {
     return (
       <div className="flex justify-center text-2xl z-50 text-green-600  items-center select-none">
         <TooltipProvider >
-          <Tooltip delayDuration={0}>
+          <Tooltip delayDuration={10}>
             <TooltipTrigger>
               <div>{squareChar}</div>
             </TooltipTrigger>
