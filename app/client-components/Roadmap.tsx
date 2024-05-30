@@ -396,7 +396,7 @@ function MileStones() {
     <div className='w-full flex flex-row justify-between h-1.5 rounded-md'>
       {
         milestones.map((milestone, i) => (
-          <div className="relative bottom-2 w-1 hover:cursor-pointer" onClick={() => handleClick(i)} key={i} >
+          <div className="relative bottom-2.5 w-1 hover:cursor-pointer" onClick={() => handleClick(i)} key={i} >
             {milestone === 'empty' && <EmptyMilestone />}
             {milestone === 'Capability Delivery' && <CapabilityDelivery />}
             {milestone === 'Security Milestone' && <SecurityMilestone />}
@@ -411,11 +411,11 @@ function MileStones() {
     const invisibleChar = '\u200B';
 
     return (
-      <div className="flex justify-center text-lg z-50 w-full items-center select-none">
+      <div className="flex justify-center text-2xl z-50 w-full items-center select-none">
         <TooltipProvider >
-          <Tooltip delayDuration={0}>
+          <Tooltip delayDuration={5}>
             <TooltipTrigger>
-              <div className=" opacity-0">o</div>
+              <div className="opacity-0">oooo</div>
             </TooltipTrigger>
             <TooltipContent>
               <div>Click to add milestone</div>
@@ -429,7 +429,7 @@ function MileStones() {
     //this one is an orange diamond in the center of the div
     const diamondChar = '\u25C6';
     return (
-      <div className="flex justify-center text-lg z-50 text-orange-600  items-center select-none">
+      <div className="flex justify-center text-2xl z-50 text-orange-600  items-center select-none">
         <TooltipProvider >
           <Tooltip delayDuration={0}>
             <TooltipTrigger>
@@ -449,7 +449,7 @@ function MileStones() {
     const triangleChar = '\u25B2';
     return (
 
-      <div className="flex justify-center text-lg z-50 text-gray-600  items-center select-none">
+      <div className="flex justify-center text-2xl z-50 text-gray-600  items-center select-none">
         <TooltipProvider >
           <Tooltip delayDuration={0}>
             <TooltipTrigger>
@@ -467,7 +467,7 @@ function MileStones() {
     //this one is a green filled square in the center of the div
     const squareChar = '\u25A0';
     return (
-      <div className="flex justify-center text-lg z-50 text-green-600  items-center select-none">
+      <div className="flex justify-center text-2xl z-50 text-green-600  items-center select-none">
         <TooltipProvider >
           <Tooltip delayDuration={0}>
             <TooltipTrigger>
