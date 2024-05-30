@@ -376,6 +376,7 @@ function MileStones() {
   const milestoneOptions = [
     'empty',
     'Capability Delivery',
+    'Testing Milestone',
     'Security Milestone',
     'EPA Comm Milestone'
   ]
@@ -398,6 +399,7 @@ function MileStones() {
         milestones.map((milestone, i) => (
           <div className="relative bottom-2.5 w-1 hover:cursor-pointer" onClick={() => handleClick(i)} key={i} >
             {milestone === 'empty' && <EmptyMilestone />}
+            {milestone === 'Testing Milestone' && <TestingMilestone />}
             {milestone === 'Capability Delivery' && <CapabilityDelivery />}
             {milestone === 'Security Milestone' && <SecurityMilestone />}
             {milestone === 'EPA Comm Milestone' && <EPACommMilestone />}
@@ -406,6 +408,8 @@ function MileStones() {
       }
     </div>
   )
+
+
   function EmptyMilestone() {
     //this one is a white invisible character in the center of the div
     const invisibleChar = '\u200B';
@@ -419,6 +423,25 @@ function MileStones() {
             </TooltipTrigger>
             <TooltipContent>
               <div>Click to add milestone</div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    )
+  }
+
+  function TestingMilestone(){
+    //this one is a yellow filled circle in the center of the div
+    const circleChar = '\u25CF';
+    return (
+      <div className="flex justify-center text-2xl z-50 text-yellow-600  items-center select-none">
+        <TooltipProvider >
+          <Tooltip delayDuration={10}>
+            <TooltipTrigger>
+              <div>{circleChar}</div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div>Testing Milestone</div>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
