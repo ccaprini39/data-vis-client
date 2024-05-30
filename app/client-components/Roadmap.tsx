@@ -6,6 +6,12 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import "react-tooltip/dist/react-tooltip.css";
 import { Button } from "@/components/ui/button";
 
@@ -162,49 +168,49 @@ function HeaderRow({ nextEightQuarters }: { nextEightQuarters: string[] }) {
   return (
     <div className="h-8 flex flex-row">
       <div className="flex-1"></div>
-      <div 
+      <div
         className="flex-1 flex flex-col text-white text-center rounded-md"
         style={{ backgroundColor: "#4C1D95" }}
       >
         {nextEightQuarters[0]}
       </div>
-      <div 
+      <div
         className="flex-1 flex flex-col text-white text-center rounded-md"
         style={{ backgroundColor: "#000080" }}
       >
         {nextEightQuarters[1]}
       </div>
-      <div 
+      <div
         className="flex-1 flex flex-col text-white text-center rounded-md"
         style={{ backgroundColor: "#6022B1" }}
       >
         {nextEightQuarters[2]}
       </div>
-      <div 
+      <div
         className="flex-1 flex flex-col text-white text-center rounded-md"
         style={{ backgroundColor: "#00008B" }}
       >
         {nextEightQuarters[3]}
       </div>
-      <div 
+      <div
         className="flex-1 flex flex-col text-white text-center rounded-md"
         style={{ backgroundColor: "#4C1D95" }}
       >
         {nextEightQuarters[4]}
       </div>
-      <div 
+      <div
         className="flex-1 flex flex-col text-white text-center rounded-md"
         style={{ backgroundColor: "#000080" }}
       >
         {nextEightQuarters[5]}
       </div>
-      <div 
+      <div
         className="flex-1 flex flex-col text-white text-center rounded-md"
         style={{ backgroundColor: "#6022B1" }}
       >
         {nextEightQuarters[6]}
       </div>
-      <div 
+      <div
         className="flex-1 flex flex-col text-white text-center rounded-md"
         style={{ backgroundColor: "#00008B" }}
       >
@@ -237,7 +243,7 @@ function TaskOrderDisplay({
       "#4C1D95",
       "#000080",
       "#6022B1",
-      "#00008B", 
+      "#00008B",
     ];
     return shadesOfPurple[colorIndex];
   }
@@ -336,7 +342,7 @@ function CapabilityDisplay({
 
   return (
     <div
-      className={`rounded-md text-xs border px-4 py-1 whitespace-normal flex items-center justify-center text-center`}
+      className={`rounded-md text-xs border px-4 py-1 whitespace-normal flex flex-col items-center justify-center text-center`}
       style={{
         gridColumn: gridColumn,
         gridRow: gridRow,
@@ -345,7 +351,10 @@ function CapabilityDisplay({
     >
       <HoverCard>
         <HoverCardTrigger asChild>
-          <div className="text-white">{capability.name}</div>
+          <div className="text-white w-full ">
+            {capability.name}
+          </div>
+
         </HoverCardTrigger>
         <HoverCardContent className="w-96">
           <div className="font-bold text-lg">{capability.name}</div>
@@ -358,6 +367,119 @@ function CapabilityDisplay({
           </ul>
         </HoverCardContent>
       </HoverCard>
+      <MileStones />
     </div>
   );
+}
+
+function MileStones() {
+  const milestoneOptions = [
+    'empty',
+    'Capability Delivery',
+    'Security Milestone',
+    'EPA Comm Milestone'
+  ]
+
+  const [milestones, setMilestones] = useState([
+    'empty',
+    'empty',
+    'empty',
+  ]);
+
+  async function handleClick(index: number) {
+    const newMilestones = [...milestones];
+    newMilestones[index] = milestoneOptions[(milestoneOptions.indexOf(newMilestones[index]) + 1) % milestoneOptions.length];
+    setMilestones(newMilestones);
+  }
+
+  return (
+    <div className='w-full flex flex-row justify-between h-1.5 rounded-md'>
+      {
+        milestones.map((milestone, i) => (
+          <div className="relative bottom-2 w-1 hover:cursor-pointer" onClick={() => handleClick(i)} key={i} >
+            {milestone === 'empty' && <EmptyMilestone />}
+            {milestone === 'Capability Delivery' && <CapabilityDelivery />}
+            {milestone === 'Security Milestone' && <SecurityMilestone />}
+            {milestone === 'EPA Comm Milestone' && <EPACommMilestone />}
+          </div>
+        ))
+      }
+    </div>
+  )
+  function EmptyMilestone() {
+    //this one is a white invisible character in the center of the div
+    const invisibleChar = '\u200B';
+
+    return (
+      <div className="flex justify-center text-lg z-50 w-full items-center select-none">
+        <TooltipProvider >
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger>
+              <div className=" opacity-0">o</div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div>Click to add milestone</div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    )
+  }
+  function CapabilityDelivery() {
+    //this one is an orange diamond in the center of the div
+    const diamondChar = '\u25C6';
+    return (
+      <div className="flex justify-center text-lg z-50 text-orange-600  items-center select-none">
+        <TooltipProvider >
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger>
+              <div>{diamondChar}</div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div>Capability Delivery</div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
+    )
+  }
+  function SecurityMilestone() {
+    //this one is a grey filled triangle in the center of the div
+    const triangleChar = '\u25B2';
+    return (
+
+      <div className="flex justify-center text-lg z-50 text-gray-600  items-center select-none">
+        <TooltipProvider >
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger>
+              <div>{triangleChar}</div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div>Security Milestone</div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    )
+  }
+  function EPACommMilestone() {
+    //this one is a green filled square in the center of the div
+    const squareChar = '\u25A0';
+    return (
+      <div className="flex justify-center text-lg z-50 text-green-600  items-center select-none">
+        <TooltipProvider >
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger>
+              <div>{squareChar}</div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div>EPA Comm Milestone</div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    )
+  }
+
 }

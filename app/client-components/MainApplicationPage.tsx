@@ -55,12 +55,10 @@ export default function MainApplicationPage() {
     <div className="w-full h-full m-5">
       <Tabs defaultValue="file" className="w-full">
         <div className="flex flex-row justify-between mx-5">
-          <TabsList>
-            <div className="flex bg-gray-300 text-black gap-1 rounded-md">
+          <TabsList className="flex bg-gray-300 text-black gap-1 rounded-md">
               <TabsTrigger value="file">File</TabsTrigger>
               <TabsTrigger disabled={tableData.length === 0} value="roadmap">Roadmap</TabsTrigger>
               <TabsTrigger disabled={tableData.length === 0} value="epic">Epics View</TabsTrigger>
-            </div>
           </TabsList>
           <ModeToggle />
         </div>
