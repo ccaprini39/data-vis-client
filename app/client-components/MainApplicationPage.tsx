@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { parseXLSFile, TaskOrder } from "./data-manipulation";
-import Roadmap from "./Roadmap";
 import { ModeToggle } from "@/components/ModeToggleButton";
-
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import EpicsView from "./EpicsView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Roadmap from "./Roadmap";
 
 
 export default function MainApplicationPage() {
@@ -59,6 +58,7 @@ export default function MainApplicationPage() {
               <TabsTrigger value="file">File</TabsTrigger>
               <TabsTrigger disabled={tableData.length === 0} value="roadmap">Roadmap</TabsTrigger>
               <TabsTrigger disabled={tableData.length === 0} value="epic">Epics View</TabsTrigger>
+              {/* <TabsTrigger disabled={tableData.length === 0} value="debug">Debug</TabsTrigger> */}
           </TabsList>
           <ModeToggle />
         </div>
@@ -91,6 +91,9 @@ export default function MainApplicationPage() {
         <TabsContent value="epic" className="p-4">
           <EpicsView taskOrders={tableData} />
         </TabsContent>
+        {/* <TabsContent value="debug" className="p-4">
+          <pre>{JSON.stringify(tableData, null, 2)}</pre>
+        </TabsContent> */}
       </Tabs>
     </div>
   );

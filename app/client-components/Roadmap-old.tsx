@@ -16,41 +16,24 @@ import "react-tooltip/dist/react-tooltip.css";
 import { Button } from "@/components/ui/button";
 
 export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
-  const [startingYear, setStartingYear] = useState((new Date().getFullYear()).toString());
-  const [startingQuarter, setStartingQuarter] = useState("Q1");
-  const [numberOfQuarters, setNumberOfQuarters] = useState(8);
+  const [startingYear, setStartingYear] = useState(new Date().getFullYear());
+  const nextEightQuarters = getNextEightQuarters(startingYear);
 
-  /**
-   * 
-   * @param n number of quarters to get
-   * @param year the year to start from
-   * @param startingQuarter the quarter to start from
-   */
-  function getNextNQuarters(n: number, year: string, startingQuarter: string = "Q1") {
-    const quarters = ["Q1", "Q2", "Q3", "Q4"];
-    const selectedQuarters = [];
-    let currentYear = parseInt(year);
-    let currentYearString = currentYear.toString().slice(-2);
-    let currentQuarter = startingQuarter;
-    for (let i = 0; i < n; i++) {
-      selectedQuarters.push(`FY${currentYearString}${currentQuarter}`);
-      let nextQuarterIndex = quarters.indexOf(currentQuarter) + 1;
-      if (nextQuarterIndex === 4) {
-        currentYear++;
-        currentYearString = currentYear.toString().slice(-2);
-        currentQuarter = "Q1";
-      } else {
-        currentQuarter = quarters[nextQuarterIndex];
-      }
-    }
-    return selectedQuarters;
+  function getNextEightQuarters(year: number) {
+    const lastTwoDigits = year.toString().slice(2);
+    const lastTwoDigitsAsNumber = parseInt(lastTwoDigits);
+
+    return [
+      `FY${lastTwoDigits}Q1`,
+      `FY${lastTwoDigits}Q2`,
+      `FY${lastTwoDigits}Q3`,
+      `FY${lastTwoDigits}Q4`,
+      `FY${lastTwoDigitsAsNumber + 1}Q1`,
+      `FY${lastTwoDigitsAsNumber + 1}Q2`,
+      `FY${lastTwoDigitsAsNumber + 1}Q3`,
+      `FY${lastTwoDigitsAsNumber + 1}Q4`,
+    ];
   }
-  const [selectedQuarters, setSelectedQuarters] = useState<string[]>(getNextNQuarters(8, "Q1", startingYear));
-
-  useEffect(() => {
-    setSelectedQuarters(getNextNQuarters(numberOfQuarters, startingYear, startingQuarter));
-  }, [startingYear, startingQuarter, numberOfQuarters])
-
 
   const componentRef = useRef<HTMLDivElement>(null);
 
@@ -73,16 +56,12 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
 
   const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const year = parseInt(e.target.value);
-    const yearString = year.toString();
-    setStartingYear(yearString);
+    setStartingYear(year);
   };
 
-  
-
-  //so I want them to be abl to selct the starting, starting quarter, and then the number of quarters to display
-  function QuarterSelector() {
-    return (
-      <div className="flex flex-row justify-between">
+  return (
+    <div className="w-full h-full flex flex-col">
+      <div className="flex justify-between items-center">
         <div>
           <label htmlFor="year-input" className="mr-2 mx-2">
             Starting Year:
@@ -95,50 +74,6 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
             className="border px-2 py-1 rounded"
           />
         </div>
-        <div>
-          <label htmlFor="quarter-input" className="mr-2 mx-2">
-            Starting Quarter:
-          </label>
-          <select
-            id="quarter-input"
-            className="border px-2 py-1 rounded"
-            value={startingQuarter}
-            onChange={(e) => setStartingQuarter(e.target.value)}
-          >
-            <option value="Q1">Q1</option>
-            <option value="Q2">Q2</option>
-            <option value="Q3">Q3</option>
-            <option value="Q4">Q4</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor="quarters-input" className="mr-2 mx-2">
-            Number of Quarters:
-          </label>
-          <select
-            id="quarters-input"
-            className="border px-2 py-1 rounded"
-            value={numberOfQuarters}
-            onChange={(e) => setNumberOfQuarters(parseInt(e.target.value))}
-          >
-            <option value="2">2</option>
-            <option value="4">4</option>
-            <option value="6">6</option>
-            <option value="8">8</option>
-            <option value="10">10</option>
-            <option value="12">12</option>
-            <option value="14">14</option>
-            <option value="16">16</option>
-          </select>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="w-full h-full flex flex-col">
-      <div className="flex justify-between items-center">
-        <QuarterSelector />
         <Button
           onClick={handleScreenshot}
         >
@@ -147,16 +82,16 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
       </div>
       <div ref={componentRef}>
         <Title
-          startingYear={parseInt(startingYear)}
+          startingYear={startingYear}
         />
-        <HeaderRow selectedQuarters={selectedQuarters} />
+        <HeaderRow nextEightQuarters={nextEightQuarters} />
         {taskOrders
           ? taskOrders.map((to, index) => (
             <TaskOrderDisplay
               key={index}
               taskOrder={to}
               index={index}
-              selectedQuarters={selectedQuarters}
+              nextEightQuarters={nextEightQuarters}
             />
           ))
           : null}
@@ -228,30 +163,59 @@ function Title({
   );
 }
 
-function HeaderRow({ selectedQuarters }: { selectedQuarters: string[] }) {
-
-  function getBackgroundColor(index: number) {
-    const colors = [
-      "#4C1D95",
-      "#000080",
-      "#6022B1",
-      "#00008B",
-    ];
-    return colors[index % 4];
-  }
+function HeaderRow({ nextEightQuarters }: { nextEightQuarters: string[] }) {
 
   return (
     <div className="h-8 flex flex-row">
       <div className="flex-1"></div>
-      {selectedQuarters.map((quarter, index) => (
-        <div
-          key={index}
-          className="flex-1 flex flex-col text-white text-center rounded-md"
-          style={{ backgroundColor: getBackgroundColor(index) }}
-        >
-          {quarter}
-        </div>
-      ))}
+      <div
+        className="flex-1 flex flex-col text-white text-center rounded-md"
+        style={{ backgroundColor: "#4C1D95" }}
+      >
+        {nextEightQuarters[0]}
+      </div>
+      <div
+        className="flex-1 flex flex-col text-white text-center rounded-md"
+        style={{ backgroundColor: "#000080" }}
+      >
+        {nextEightQuarters[1]}
+      </div>
+      <div
+        className="flex-1 flex flex-col text-white text-center rounded-md"
+        style={{ backgroundColor: "#6022B1" }}
+      >
+        {nextEightQuarters[2]}
+      </div>
+      <div
+        className="flex-1 flex flex-col text-white text-center rounded-md"
+        style={{ backgroundColor: "#00008B" }}
+      >
+        {nextEightQuarters[3]}
+      </div>
+      <div
+        className="flex-1 flex flex-col text-white text-center rounded-md"
+        style={{ backgroundColor: "#4C1D95" }}
+      >
+        {nextEightQuarters[4]}
+      </div>
+      <div
+        className="flex-1 flex flex-col text-white text-center rounded-md"
+        style={{ backgroundColor: "#000080" }}
+      >
+        {nextEightQuarters[5]}
+      </div>
+      <div
+        className="flex-1 flex flex-col text-white text-center rounded-md"
+        style={{ backgroundColor: "#6022B1" }}
+      >
+        {nextEightQuarters[6]}
+      </div>
+      <div
+        className="flex-1 flex flex-col text-white text-center rounded-md"
+        style={{ backgroundColor: "#00008B" }}
+      >
+        {nextEightQuarters[7]}
+      </div>
     </div>
   );
 }
@@ -259,13 +223,12 @@ function HeaderRow({ selectedQuarters }: { selectedQuarters: string[] }) {
 function TaskOrderDisplay({
   taskOrder,
   index,
-  selectedQuarters,
+  nextEightQuarters,
 }: {
   taskOrder: TaskOrder;
   index: number;
-  selectedQuarters: string[];
+  nextEightQuarters: string[];
 }) {
-
   const capabilities = taskOrder.portfolioEpics
     ? taskOrder.portfolioEpics.map((pe) => pe.capabilities).flat()
     : [];
@@ -294,13 +257,7 @@ function TaskOrderDisplay({
       className="flex-1 flex flex-row w-full border border-black rounded-md shadow-sm"
       key={index}
     >
-      <div 
-        className="h-full w-full"
-        style={{
-          display: "grid",
-          gridTemplateColumns: `repeat(${selectedQuarters.length + 1}, minmax(0,1fr))`,
-        }}
-      >
+      <div className="h-full w-full grid grid-cols-9">
         <div
           style={{
             gridColumn: firstColumn,
@@ -317,7 +274,7 @@ function TaskOrderDisplay({
             capability={c}
             index={i + 1}
             color={color}
-            selectedQuarters={selectedQuarters}
+            nextEightQuarters={nextEightQuarters}
           />
         ))}
       </div>
@@ -329,76 +286,50 @@ function CapabilityDisplay({
   capability,
   index,
   color,
-  selectedQuarters,
+  nextEightQuarters,
 }: {
   capability: Capability;
   index: number;
   color: string;
-  selectedQuarters: string[];
+  nextEightQuarters: string[];
 }) {
-  //check if the capability labels are in the selectedQuarters
-  //if not, return an empty div
-  if (!capability.labels || capability.labels.length === 0) {
-    return <div></div>;
-  }
-  function checkIfAllLabelsAreInSelectedQuarters(
-    selectedQuarters: string[],
-    labels: string[],
-  ) {
-    return labels.every((label) => selectedQuarters.includes(label));
-  }
-  function checkIfAnyLabelsAreInSelectedQuarters(
-    selectedQuarters: string[],
-    labels: string[],
-  ) {
-    return labels.some((label) => selectedQuarters.includes(label));
-  }
-  
-  if (!checkIfAnyLabelsAreInSelectedQuarters(selectedQuarters, capability.labels)) {
-    return <div></div>;
-  }
-
   const gridRowIndex = index + 1;
   let gridRow = `${gridRowIndex} / ${gridRowIndex + 1}`;
   let gridColumn = getGridColumns(
-    selectedQuarters,
-    capability.labels
+    nextEightQuarters,
+    capability.plannedStart,
+    capability.plannedEnd
   );
 
-
-  const sampleNextEightQuarters = [
-    "FY22Q1",
-    "FY22Q2",
-    "FY22Q3",
-    "FY22Q4",
-    "FY23Q1",
-    "FY23Q2",
-    "FY23Q3",
-    "FY23Q4",
-  ];
-
-  const sampleLabels = [
-    "FY24Q1",
-    "FY24Q2"
-  ]
-
   function getGridColumns(
-    selectedQuarters: string[],
-    labels: string[],
+    nextEightQuarters: string[],
+    plannedStart: string,
+    plannedEnd: string
   ) {
-    const beginningLabel = labels[0];
-    const endLabel = labels[labels.length - 1];
-
-    let beginningIndex = selectedQuarters.indexOf(beginningLabel);
-    if (beginningIndex === -1) {
-      beginningIndex = 0
+    if (!plannedStart || !plannedEnd) {
+      return "";
     }
-    console.log("selectedQuarters", selectedQuarters)
-    console.log("beginningLabel", beginningLabel)
-    console.log("beginningIndex", beginningIndex)
 
-    const endIndex = selectedQuarters.indexOf(endLabel);
+    const plannedStartParts = plannedStart.split("/");
+    const plannedEndParts = plannedEnd.split("/");
 
+    const plannedStartQuarter = `FY${plannedStartParts[2].slice(
+      -2
+    )}Q${Math.ceil(parseInt(plannedStartParts[0]) / 3)}`;
+    const plannedEndQuarter = `FY${plannedEndParts[2].slice(-2)}Q${Math.ceil(
+      parseInt(plannedEndParts[0]) / 3
+    )}`;
+
+    const beginningIndex = nextEightQuarters.findIndex(
+      (quarter) => quarter === plannedStartQuarter
+    );
+    const endIndex = nextEightQuarters.findIndex(
+      (quarter) => quarter === plannedEndQuarter
+    );
+
+    if (beginningIndex === -1 || endIndex === -1) {
+      return "";
+    }
 
     const gridColumn = `${beginningIndex + 2} / ${endIndex + 3}`;
     return gridColumn;
@@ -434,9 +365,6 @@ function CapabilityDisplay({
               </li>
             ))}
           </ul>
-          {/* <pre onClick={() => alert(capability)} className="text-xs">
-            {JSON.stringify(capability, null, 2)}
-          </pre> */}
         </HoverCardContent>
       </HoverCard>
       <MileStones />
@@ -502,7 +430,7 @@ function MileStones() {
     )
   }
 
-  function TestingMilestone() {
+  function TestingMilestone(){
     //this one is a yellow filled circle in the center of the div
     const circleChar = '\u25CF';
     return (
