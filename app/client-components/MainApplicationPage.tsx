@@ -3,10 +3,10 @@ import { parseXLSFile, TaskOrder } from "./data-manipulation";
 import { ModeToggle } from "@/components/ModeToggleButton";
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import EpicsView from "./EpicsView";
+import PortfolioEpicsView from "./PortfolioEpicView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Roadmap from "./Roadmap";
-
 
 export default function MainApplicationPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -55,10 +55,17 @@ export default function MainApplicationPage() {
       <Tabs defaultValue="file" className="w-full">
         <div className="flex flex-row justify-between mx-5">
           <TabsList className="flex bg-gray-300 text-black gap-1 rounded-md">
-              <TabsTrigger value="file">File</TabsTrigger>
-              <TabsTrigger disabled={tableData.length === 0} value="roadmap">Roadmap</TabsTrigger>
-              <TabsTrigger disabled={tableData.length === 0} value="epic">Epics View</TabsTrigger>
-              {/* <TabsTrigger disabled={tableData.length === 0} value="debug">Debug</TabsTrigger> */}
+            <TabsTrigger value="file">File</TabsTrigger>
+            <TabsTrigger disabled={tableData.length === 0} value="roadmap">
+              Roadmap
+            </TabsTrigger>
+            <TabsTrigger disabled={tableData.length === 0} value="portfolio">
+              Portfolio View
+            </TabsTrigger>
+            <TabsTrigger disabled={tableData.length === 0} value="epic">
+              Epics View
+            </TabsTrigger>
+            {/* <TabsTrigger disabled={tableData.length === 0} value="debug">Debug</TabsTrigger> */}
           </TabsList>
           <ModeToggle />
         </div>
@@ -87,6 +94,9 @@ export default function MainApplicationPage() {
           ) : (
             <Roadmap taskOrders={tableData} />
           )}
+        </TabsContent>
+        <TabsContent value="portfolio" className="p-4">
+          <PortfolioEpicsView taskOrders={tableData} />
         </TabsContent>
         <TabsContent value="epic" className="p-4">
           <EpicsView taskOrders={tableData} />
