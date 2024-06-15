@@ -56,13 +56,17 @@ export default function MainApplicationPage() {
         <div className="flex flex-row justify-between mx-5">
           <TabsList className="flex bg-gray-300 text-black gap-1 rounded-md">
             <TabsTrigger value="file">File</TabsTrigger>
-            <TabsTrigger disabled={tableData.length === 0} value="roadmap">
-              Roadmap
+            <TabsTrigger
+              disabled={tableData.length === 0}
+              value="portfolio_epics"
+            >
+              Portfolio Epics View
             </TabsTrigger>
-            <TabsTrigger disabled={tableData.length === 0} value="portfolio">
-              Portfolio View
+            <TabsTrigger disabled={tableData.length === 0} value="capabilities">
+              Capabilities View
             </TabsTrigger>
-            <TabsTrigger disabled={tableData.length === 0} value="epic">
+
+            <TabsTrigger disabled={tableData.length === 0} value="epics">
               Epics View
             </TabsTrigger>
             {/* <TabsTrigger disabled={tableData.length === 0} value="debug">Debug</TabsTrigger> */}
@@ -88,17 +92,18 @@ export default function MainApplicationPage() {
             Reset
           </Button>
         </TabsContent>
-        <TabsContent value="roadmap" className="p-4">
+        <TabsContent value="portfolio_epics" className="p-4">
+          <PortfolioEpicsView taskOrders={tableData} />
+        </TabsContent>
+        <TabsContent value="capabilities" className="p-4">
           {tableData.length === 0 ? (
             <div className="mx-4">No data</div>
           ) : (
             <Roadmap taskOrders={tableData} />
           )}
         </TabsContent>
-        <TabsContent value="portfolio" className="p-4">
-          <PortfolioEpicsView taskOrders={tableData} />
-        </TabsContent>
-        <TabsContent value="epic" className="p-4">
+
+        <TabsContent value="epics" className="p-4">
           <EpicsView taskOrders={tableData} />
         </TabsContent>
         {/* <TabsContent value="debug" className="p-4">
