@@ -11,22 +11,28 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import { Button } from "@/components/ui/button";
 
 export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
-  const [startingYear, setStartingYear] = useState((new Date().getFullYear()).toString());
+  const [startingYear, setStartingYear] = useState(
+    new Date().getFullYear().toString()
+  );
   const [startingQuarter, setStartingQuarter] = useState("Q1");
   const [numberOfQuarters, setNumberOfQuarters] = useState(8);
 
   /**
-   * 
+   *
    * @param n number of quarters to get
    * @param year the year to start from
    * @param startingQuarter the quarter to start from
    */
-  function getNextNQuarters(n: number, year: string, startingQuarter: string = "Q1") {
+  function getNextNQuarters(
+    n: number,
+    year: string,
+    startingQuarter: string = "Q1"
+  ) {
     const quarters = ["Q1", "Q2", "Q3", "Q4"];
     const selectedQuarters = [];
     let currentYear = parseInt(year);
@@ -45,12 +51,15 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
     }
     return selectedQuarters;
   }
-  const [selectedQuarters, setSelectedQuarters] = useState<string[]>(getNextNQuarters(8, "Q1", startingYear));
+  const [selectedQuarters, setSelectedQuarters] = useState<string[]>(
+    getNextNQuarters(8, "Q1", startingYear)
+  );
 
   useEffect(() => {
-    setSelectedQuarters(getNextNQuarters(numberOfQuarters, startingYear, startingQuarter));
-  }, [startingYear, startingQuarter, numberOfQuarters])
-
+    setSelectedQuarters(
+      getNextNQuarters(numberOfQuarters, startingYear, startingQuarter)
+    );
+  }, [startingYear, startingQuarter, numberOfQuarters]);
 
   const componentRef = useRef<HTMLDivElement>(null);
 
@@ -76,8 +85,6 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
     const yearString = year.toString();
     setStartingYear(yearString);
   };
-
-  
 
   //so I want them to be abl to selct the starting, starting quarter, and then the number of quarters to display
   function QuarterSelector() {
@@ -132,44 +139,34 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
           </select>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="w-full h-full flex flex-col">
       <div className="flex justify-between items-center">
         <QuarterSelector />
-        <Button
-          onClick={handleScreenshot}
-        >
-          Save as Image
-        </Button>
+        <Button onClick={handleScreenshot}>Save as Image</Button>
       </div>
       <div ref={componentRef}>
-        <Title
-          startingYear={parseInt(startingYear)}
-        />
+        <Title startingYear={parseInt(startingYear)} />
         <HeaderRow selectedQuarters={selectedQuarters} />
         {taskOrders
           ? taskOrders.map((to, index) => (
-            <TaskOrderDisplay
-              key={index}
-              taskOrder={to}
-              index={index}
-              selectedQuarters={selectedQuarters}
-            />
-          ))
+              <TaskOrderDisplay
+                key={index}
+                taskOrder={to}
+                index={index}
+                selectedQuarters={selectedQuarters}
+              />
+            ))
           : null}
       </div>
     </div>
   );
 }
 
-function Title({
-  startingYear,
-}: {
-  startingYear: number;
-}) {
+function Title({ startingYear }: { startingYear: number }) {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -229,27 +226,68 @@ function Title({
 }
 
 function HeaderRow({ selectedQuarters }: { selectedQuarters: string[] }) {
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [headerTitles, setHeaderTitles] = useState<string[]>(selectedQuarters);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setHeaderTitles(selectedQuarters);
+  }, [selectedQuarters]);
+
+  const handleHeaderClick = (index: number) => {
+    setEditingIndex(index);
+  };
+
+  const handleHeaderChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const newHeaderTitles = [...headerTitles];
+    newHeaderTitles[index] = e.target.value;
+    setHeaderTitles(newHeaderTitles);
+  };
+
+  const handleHeaderBlur = () => {
+    setEditingIndex(null);
+  };
+
+  useEffect(() => {
+    if (editingIndex !== null && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [editingIndex]);
 
   function getBackgroundColor(index: number) {
-    const colors = [
-      "#4C1D95",
-      "#000080",
-      "#6022B1",
-      "#00008B",
-    ];
+    const colors = ["#4C1D95", "#000080", "#6022B1", "#00008B"];
     return colors[index % 4];
   }
 
   return (
     <div className="h-8 flex flex-row">
       <div className="flex-1"></div>
-      {selectedQuarters.map((quarter, index) => (
+      {headerTitles.map((headerTitle, index) => (
         <div
           key={index}
           className="flex-1 flex flex-col text-white text-center rounded-md"
           style={{ backgroundColor: getBackgroundColor(index) }}
         >
-          {quarter}
+          {editingIndex === index ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={headerTitle}
+              onChange={(e) => handleHeaderChange(e, index)}
+              onBlur={handleHeaderBlur}
+              className="text-white bg-transparent focus:outline-none text-center"
+            />
+          ) : (
+            <div
+              className="cursor-text"
+              onClick={() => handleHeaderClick(index)}
+            >
+              {headerTitle}
+            </div>
+          )}
         </div>
       ))}
     </div>
@@ -265,7 +303,6 @@ function TaskOrderDisplay({
   index: number;
   selectedQuarters: string[];
 }) {
-
   const capabilities = taskOrder.portfolioEpics
     ? taskOrder.portfolioEpics.map((pe) => pe.capabilities).flat()
     : [];
@@ -276,12 +313,7 @@ function TaskOrderDisplay({
 
   function getShadeOfPurple(index: number) {
     let colorIndex = index % 4;
-    const shadesOfPurple = [
-      "#4C1D95",
-      "#000080",
-      "#6022B1",
-      "#00008B",
-    ];
+    const shadesOfPurple = ["#4C1D95", "#000080", "#6022B1", "#00008B"];
     return shadesOfPurple[colorIndex];
   }
   const color = getShadeOfPurple(index);
@@ -294,11 +326,13 @@ function TaskOrderDisplay({
       className="flex-1 flex flex-row w-full border border-black rounded-md shadow-sm"
       key={index}
     >
-      <div 
+      <div
         className="h-full w-full"
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${selectedQuarters.length + 1}, minmax(0,1fr))`,
+          gridTemplateColumns: `repeat(${
+            selectedQuarters.length + 1
+          }, minmax(0,1fr))`,
         }}
       >
         <div
@@ -343,28 +377,26 @@ function CapabilityDisplay({
   }
   function checkIfAllLabelsAreInSelectedQuarters(
     selectedQuarters: string[],
-    labels: string[],
+    labels: string[]
   ) {
     return labels.every((label) => selectedQuarters.includes(label));
   }
   function checkIfAnyLabelsAreInSelectedQuarters(
     selectedQuarters: string[],
-    labels: string[],
+    labels: string[]
   ) {
     return labels.some((label) => selectedQuarters.includes(label));
   }
-  
-  if (!checkIfAnyLabelsAreInSelectedQuarters(selectedQuarters, capability.labels)) {
+
+  if (
+    !checkIfAnyLabelsAreInSelectedQuarters(selectedQuarters, capability.labels)
+  ) {
     return <div></div>;
   }
 
   const gridRowIndex = index + 1;
   let gridRow = `${gridRowIndex} / ${gridRowIndex + 1}`;
-  let gridColumn = getGridColumns(
-    selectedQuarters,
-    capability.labels
-  );
-
+  let gridColumn = getGridColumns(selectedQuarters, capability.labels);
 
   const sampleNextEightQuarters = [
     "FY22Q1",
@@ -377,28 +409,21 @@ function CapabilityDisplay({
     "FY23Q4",
   ];
 
-  const sampleLabels = [
-    "FY24Q1",
-    "FY24Q2"
-  ]
+  const sampleLabels = ["FY24Q1", "FY24Q2"];
 
-  function getGridColumns(
-    selectedQuarters: string[],
-    labels: string[],
-  ) {
+  function getGridColumns(selectedQuarters: string[], labels: string[]) {
     const beginningLabel = labels[0];
     const endLabel = labels[labels.length - 1];
 
     let beginningIndex = selectedQuarters.indexOf(beginningLabel);
     if (beginningIndex === -1) {
-      beginningIndex = 0
+      beginningIndex = 0;
     }
-    console.log("selectedQuarters", selectedQuarters)
-    console.log("beginningLabel", beginningLabel)
-    console.log("beginningIndex", beginningIndex)
+    console.log("selectedQuarters", selectedQuarters);
+    console.log("beginningLabel", beginningLabel);
+    console.log("beginningIndex", beginningIndex);
 
     const endIndex = selectedQuarters.indexOf(endLabel);
-
 
     const gridColumn = `${beginningIndex + 2} / ${endIndex + 3}`;
     return gridColumn;
@@ -420,10 +445,7 @@ function CapabilityDisplay({
     >
       <HoverCard>
         <HoverCardTrigger asChild>
-          <div className="text-white w-full ">
-            {capability.name}
-          </div>
-
+          <div className="text-white w-full ">{capability.name}</div>
         </HoverCardTrigger>
         <HoverCardContent className="w-96">
           <div className="font-bold text-lg">{capability.name}</div>
@@ -446,49 +468,44 @@ function CapabilityDisplay({
 
 function MileStones() {
   const milestoneOptions = [
-    'empty',
-    'Capability Delivery',
-    'Testing Milestone',
-    'Security Milestone',
-    'EPA Comm Milestone'
-  ]
+    "empty",
+    "Capability Delivery",
+    "Testing Milestone",
+    "Security Milestone",
+    "EPA CommMilestone",
+  ];
 
-  const [milestones, setMilestones] = useState([
-    'empty',
-    'empty',
-    'empty',
-  ]);
-
+  const [milestones, setMilestones] = useState(["empty", "empty", "empty"]);
   async function handleClick(index: number) {
     const newMilestones = [...milestones];
-    newMilestones[index] = milestoneOptions[(milestoneOptions.indexOf(newMilestones[index]) + 1) % milestoneOptions.length];
+    newMilestones[index] =
+      milestoneOptions[
+        (milestoneOptions.indexOf(newMilestones[index]) + 1) %
+          milestoneOptions.length
+      ];
     setMilestones(newMilestones);
   }
-
   return (
-    <div className='w-full flex flex-row justify-between h-1.5 rounded-md'>
-      {
-        milestones.map((milestone, i) => (
-          <div className="relative bottom-2.5 w-1 hover:cursor-pointer" onClick={() => handleClick(i)} key={i} >
-            {milestone === 'empty' && <EmptyMilestone />}
-            {milestone === 'Testing Milestone' && <TestingMilestone />}
-            {milestone === 'Capability Delivery' && <CapabilityDelivery />}
-            {milestone === 'Security Milestone' && <SecurityMilestone />}
-            {milestone === 'EPA Comm Milestone' && <EPACommMilestone />}
-          </div>
-        ))
-      }
+    <div className="w-full flex flex-row justify-between h-1.5 rounded-md">
+      {milestones.map((milestone, i) => (
+        <div
+          className="relative bottom-2.5 w-1 hover:cursor-pointer"
+          onClick={() => handleClick(i)}
+          key={i}
+        >
+          {milestone === "empty" && <EmptyMilestone />}
+          {milestone === "Testing Milestone" && <TestingMilestone />}
+          {milestone === "Capability Delivery" && <CapabilityDelivery />}
+          {milestone === "Security Milestone" && <SecurityMilestone />}
+          {milestone === "EPA Comm Milestone" && <EPACommMilestone />}
+        </div>
+      ))}
     </div>
-  )
-
-
+  );
   function EmptyMilestone() {
-    //this one is a white invisible character in the center of the div
-    const invisibleChar = '\u200B';
-
     return (
       <div className="flex justify-center text-2xl z-50 w-full items-center select-none">
-        <TooltipProvider >
+        <TooltipProvider>
           <Tooltip delayDuration={10}>
             <TooltipTrigger>
               <div className="opacity-0">oooo</div>
@@ -499,15 +516,13 @@ function MileStones() {
           </Tooltip>
         </TooltipProvider>
       </div>
-    )
+    );
   }
-
   function TestingMilestone() {
-    //this one is a yellow filled circle in the center of the div
-    const circleChar = '\u25CF';
+    const circleChar = "\u25CF";
     return (
-      <div className="flex justify-center text-2xl z-50 text-yellow-300  items-center select-none">
-        <TooltipProvider >
+      <div className="flex justify-center text-2xl z-50 text-yellow-300 items-center select-none">
+        <TooltipProvider>
           <Tooltip delayDuration={10}>
             <TooltipTrigger>
               <div>{circleChar}</div>
@@ -518,14 +533,13 @@ function MileStones() {
           </Tooltip>
         </TooltipProvider>
       </div>
-    )
+    );
   }
   function CapabilityDelivery() {
-    //this one is an orange diamond in the center of the div
-    const diamondChar = '\u25C6';
+    const diamondChar = "\u25C6";
     return (
-      <div className="flex justify-center text-2xl z-50 text-orange-600  items-center select-none">
-        <TooltipProvider >
+      <div className="flex justify-center text-2xl z-50 text-orange-600 items-center select-none">
+        <TooltipProvider>
           <Tooltip delayDuration={10}>
             <TooltipTrigger>
               <div>{diamondChar}</div>
@@ -536,16 +550,13 @@ function MileStones() {
           </Tooltip>
         </TooltipProvider>
       </div>
-
-    )
+    );
   }
   function SecurityMilestone() {
-    //this one is a grey filled triangle in the center of the div
-    const triangleChar = '\u25B2';
+    const triangleChar = "\u25B2";
     return (
-
-      <div className="flex justify-center text-2xl z-50 text-gray-600  items-center select-none">
-        <TooltipProvider >
+      <div className="flex justify-center text-2xl z-50 text-gray-600 items-center select-none">
+        <TooltipProvider>
           <Tooltip delayDuration={10}>
             <TooltipTrigger>
               <div>{triangleChar}</div>
@@ -556,14 +567,13 @@ function MileStones() {
           </Tooltip>
         </TooltipProvider>
       </div>
-    )
+    );
   }
   function EPACommMilestone() {
-    //this one is a green filled square in the center of the div
-    const squareChar = '\u25A0';
+    const squareChar = "\u25A0";
     return (
-      <div className="flex justify-center text-2xl z-50 text-green-600  items-center select-none">
-        <TooltipProvider >
+      <div className="flex justify-center text-2xl z-50 text-green-600 items-center select-none">
+        <TooltipProvider>
           <Tooltip delayDuration={10}>
             <TooltipTrigger>
               <div>{squareChar}</div>
@@ -574,7 +584,6 @@ function MileStones() {
           </Tooltip>
         </TooltipProvider>
       </div>
-    )
+    );
   }
-
 }
