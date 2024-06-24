@@ -169,7 +169,7 @@ function Title({ startingYear }: { startingYear: number }) {
   const previousYear = startingYear - 1;
   const nextYear = startingYear + 1;
 
-  const defaultTitle = `Portfolio Epics View: October ${previousYear} - October ${nextYear}`;
+  const defaultTitle = `Portfolio Epics View`;
 
   const handleTitleClick = () => {
     setIsEditing(true);

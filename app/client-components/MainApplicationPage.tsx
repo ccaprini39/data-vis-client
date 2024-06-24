@@ -7,7 +7,7 @@ import EpicsView from "./EpicsView";
 import StoryView from "./StoryView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Roadmap from "./Roadmap";
+import CapabilitiesView from "./CapabilitiesView";
 
 export default function MainApplicationPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -71,7 +71,7 @@ export default function MainApplicationPage() {
               Epics View
             </TabsTrigger>
             <TabsTrigger disabled={tableData.length === 0} value="stories">
-              Stories View
+              Story View
             </TabsTrigger>
             {/* <TabsTrigger disabled={tableData.length === 0} value="debug">Debug</TabsTrigger> */}
           </TabsList>
@@ -103,7 +103,7 @@ export default function MainApplicationPage() {
           {tableData.length === 0 ? (
             <div className="mx-4">No data</div>
           ) : (
-            <Roadmap taskOrders={tableData} />
+            <CapabilitiesView taskOrders={tableData} />
           )}
         </TabsContent>
 

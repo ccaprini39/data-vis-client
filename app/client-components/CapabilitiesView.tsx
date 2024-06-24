@@ -23,7 +23,11 @@ interface ColumnConfig {
   title: string;
 }
 
-export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
+export default function CapabilitiesView({
+  taskOrders,
+}: {
+  taskOrders: TaskOrder[];
+}) {
   const [numberOfColumns, setNumberOfColumns] = useState(8);
   const [columnConfigs, setColumnConfigs] = useState<ColumnConfig[]>(
     Array(numberOfColumns).fill({
@@ -121,7 +125,7 @@ function Title() {
   const [title, setTitle] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const defaultTitle = "Roadmap";
+  const defaultTitle = "Capabilities View";
 
   const handleTitleClick = () => {
     setIsEditing(true);
