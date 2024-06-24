@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { parseXLSFile, TaskOrder } from "./data-manipulation";
 import { ModeToggle } from "@/components/ModeToggleButton";
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
-import EpicsView from "./EpicsView";
 import PortfolioEpicsView from "./PortfolioEpicView";
+import EpicsView from "./EpicsView";
+import StoryView from "./StoryView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Roadmap from "./Roadmap";
@@ -69,6 +70,9 @@ export default function MainApplicationPage() {
             <TabsTrigger disabled={tableData.length === 0} value="epics">
               Epics View
             </TabsTrigger>
+            <TabsTrigger disabled={tableData.length === 0} value="stories">
+              Stories View
+            </TabsTrigger>
             {/* <TabsTrigger disabled={tableData.length === 0} value="debug">Debug</TabsTrigger> */}
           </TabsList>
           <ModeToggle />
@@ -105,6 +109,9 @@ export default function MainApplicationPage() {
 
         <TabsContent value="epics" className="p-4">
           <EpicsView taskOrders={tableData} />
+        </TabsContent>
+        <TabsContent value="stories" className="p-4">
+          <StoryView taskOrders={tableData} />
         </TabsContent>
         {/* <TabsContent value="debug" className="p-4">
           <pre>{JSON.stringify(tableData, null, 2)}</pre>
