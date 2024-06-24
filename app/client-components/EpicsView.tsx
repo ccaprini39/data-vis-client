@@ -14,46 +14,34 @@ import {
 } from "@/components/ui/tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import { Button } from "@/components/ui/button";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
+interface ColumnConfig {
+  startDate: Date | null;
+  endDate: Date | null;
+  title: string;
+}
 
 export default function EpicsView({ taskOrders }: { taskOrders: TaskOrder[] }) {
-  const [startingYear, setStartingYear] = useState(
-    new Date().getFullYear().toString()
-  );
-  const [startingQuarter, setStartingQuarter] = useState("Q1");
-  const [numberOfQuarters, setNumberOfQuarters] = useState(8);
-
-  function getNextNQuarters(
-    n: number,
-    year: string,
-    startingQuarter: string = "Q1"
-  ) {
-    const quarters = ["Q1", "Q2", "Q3", "Q4"];
-    const selectedQuarters = [];
-    let currentYear = parseInt(year);
-    let currentYearString = currentYear.toString().slice(-2);
-    let currentQuarter = startingQuarter;
-    for (let i = 0; i < n; i++) {
-      selectedQuarters.push(`FY${currentYearString}${currentQuarter}`);
-      let nextQuarterIndex = quarters.indexOf(currentQuarter) + 1;
-      if (nextQuarterIndex === 4) {
-        currentYear++;
-        currentYearString = currentYear.toString().slice(-2);
-        currentQuarter = "Q1";
-      } else {
-        currentQuarter = quarters[nextQuarterIndex];
-      }
-    }
-    return selectedQuarters;
-  }
-  const [selectedQuarters, setSelectedQuarters] = useState<string[]>(
-    getNextNQuarters(8, "Q1", startingYear)
+  const [numberOfColumns, setNumberOfColumns] = useState(8);
+  const [columnConfigs, setColumnConfigs] = useState<ColumnConfig[]>(
+    Array(numberOfColumns).fill({
+      startDate: null,
+      endDate: null,
+      title: "",
+    })
   );
 
   useEffect(() => {
-    setSelectedQuarters(
-      getNextNQuarters(numberOfQuarters, startingYear, startingQuarter)
+    setColumnConfigs(
+      Array(numberOfColumns).fill({
+        startDate: null,
+        endDate: null,
+        title: "",
+      })
     );
-  }, [startingYear, startingQuarter, numberOfQuarters]);
+  }, [numberOfColumns]);
 
   const componentRef = useRef<HTMLDivElement>(null);
 
@@ -72,52 +60,18 @@ export default function EpicsView({ taskOrders }: { taskOrders: TaskOrder[] }) {
     }
   }
 
-  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const year = parseInt(e.target.value);
-    const yearString = year.toString();
-    setStartingYear(yearString);
-  };
-
-  function QuarterSelector() {
+  function ColumnSelector() {
     return (
       <div className="flex flex-row justify-between">
         <div>
-          <label htmlFor="year-input" className="mr-2 mx-2">
-            Starting Year:
-          </label>
-          <input
-            id="year-input"
-            type="number"
-            value={startingYear}
-            onChange={handleYearChange}
-            className="border px-2 py-1 rounded"
-          />
-        </div>
-        <div>
-          <label htmlFor="quarter-input" className="mr-2 mx-2">
-            Starting Quarter:
+          <label htmlFor="columns-input" className="mr-2 mx-2">
+            Number of Columns:
           </label>
           <select
-            id="quarter-input"
+            id="columns-input"
             className="border px-2 py-1 rounded"
-            value={startingQuarter}
-            onChange={(e) => setStartingQuarter(e.target.value)}
-          >
-            <option value="Q1">Q1</option>
-            <option value="Q2">Q2</option>
-            <option value="Q3">Q3</option>
-            <option value="Q4">Q4</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor="quarters-input" className="mr-2 mx-2">
-            Number of Quarters:
-          </label>
-          <select
-            id="quarters-input"
-            className="border px-2 py-1 rounded"
-            value={numberOfQuarters}
-            onChange={(e) => setNumberOfQuarters(parseInt(e.target.value))}
+            value={numberOfColumns}
+            onChange={(e) => setNumberOfColumns(parseInt(e.target.value))}
           >
             <option value="2">2</option>
             <option value="4">4</option>
@@ -136,19 +90,22 @@ export default function EpicsView({ taskOrders }: { taskOrders: TaskOrder[] }) {
   return (
     <div className="w-full h-full flex flex-col">
       <div className="flex justify-between items-center">
-        <QuarterSelector />
+        <ColumnSelector />
         <Button onClick={handleScreenshot}>Save as Image</Button>
       </div>
       <div ref={componentRef}>
-        <Title startingYear={parseInt(startingYear)} />
-        <HeaderRow selectedQuarters={selectedQuarters} />
+        <Title />
+        <HeaderRow
+          columnConfigs={columnConfigs}
+          setColumnConfigs={setColumnConfigs}
+        />
         {taskOrders
           ? taskOrders.map((to, index) => (
               <TaskOrderDisplay
                 key={index}
                 taskOrder={to}
                 index={index}
-                selectedQuarters={selectedQuarters}
+                columnConfigs={columnConfigs}
               />
             ))
           : null}
@@ -157,15 +114,12 @@ export default function EpicsView({ taskOrders }: { taskOrders: TaskOrder[] }) {
   );
 }
 
-function Title({ startingYear }: { startingYear: number }) {
+function Title() {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const previousYear = startingYear - 1;
-  const nextYear = startingYear + 1;
-
-  const defaultTitle = `Epics View: October ${previousYear} - October ${nextYear}`;
+  const defaultTitle = "Epics View";
 
   const handleTitleClick = () => {
     setIsEditing(true);
@@ -216,22 +170,129 @@ function Title({ startingYear }: { startingYear: number }) {
   );
 }
 
-function HeaderRow({ selectedQuarters }: { selectedQuarters: string[] }) {
+function HeaderRow({
+  columnConfigs,
+  setColumnConfigs,
+}: {
+  columnConfigs: ColumnConfig[];
+  setColumnConfigs: React.Dispatch<React.SetStateAction<ColumnConfig[]>>;
+}) {
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [selectedColumnIndex, setSelectedColumnIndex] = useState<number | null>(
+    null
+  );
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dateRangeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dateRangeRef.current &&
+        !dateRangeRef.current.contains(event.target as Node)
+      ) {
+        setSelectedColumnIndex(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   function getBackgroundColor(index: number) {
     const colors = ["#4C1D95", "#000080", "#6022B1", "#00008B"];
     return colors[index % 4];
   }
 
+  const handleHeaderDoubleClick = (index: number) => {
+    setEditingIndex(index);
+  };
+
+  const handleHeaderChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    const newColumnConfigs = [...columnConfigs];
+    newColumnConfigs[index] = {
+      ...newColumnConfigs[index],
+      title: e.target.value,
+    };
+    setColumnConfigs(newColumnConfigs);
+  };
+
+  const handleHeaderBlur = () => {
+    setEditingIndex(null);
+  };
+
+  const handleDateChange = (
+    date: Date | null,
+    index: number,
+    type: "start" | "end"
+  ) => {
+    const newColumnConfigs = [...columnConfigs];
+    newColumnConfigs[index] = {
+      ...newColumnConfigs[index],
+      [type === "start" ? "startDate" : "endDate"]: date,
+    };
+    setColumnConfigs(newColumnConfigs);
+  };
+
+  useEffect(() => {
+    if (editingIndex !== null && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [editingIndex]);
+
   return (
     <div className="h-8 flex flex-row">
       <div className="flex-1"></div>
-      {selectedQuarters.map((quarter, index) => (
+      {columnConfigs.map((config, index) => (
         <div
           key={index}
-          className="flex-1 flex flex-col text-white text-center rounded-md"
+          className={`flex-1 flex flex-col text-white text-center rounded-md relative ${
+            selectedColumnIndex === index ? "border-2 border-white" : ""
+          }`}
           style={{ backgroundColor: getBackgroundColor(index) }}
+          onClick={() => setSelectedColumnIndex(index)}
         >
-          {quarter}
+          {editingIndex === index ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={config.title}
+              onChange={(e) => handleHeaderChange(e, index)}
+              onBlur={handleHeaderBlur}
+              className="text-white bg-transparent focus:outline-none text-center"
+            />
+          ) : (
+            <div onDoubleClick={() => handleHeaderDoubleClick(index)}>
+              {config.title || `Column ${index + 1}`}
+            </div>
+          )}
+          {selectedColumnIndex === index && (
+            <div
+              ref={dateRangeRef}
+              className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 text-black dark:text-white p-4 rounded shadow"
+            >
+              <div className="mb-4">
+                <label className="block mb-1">Start Date:</label>
+                <DatePicker
+                  selected={config.startDate}
+                  onChange={(date) => handleDateChange(date, index, "start")}
+                  className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 w-full text-black dark:text-white bg-white dark:bg-gray-800"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">End Date:</label>
+                <DatePicker
+                  selected={config.endDate}
+                  onChange={(date) => handleDateChange(date, index, "end")}
+                  className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 w-full text-black dark:text-white bg-white dark:bg-gray-800"
+                />
+              </div>
+            </div>
+          )}
         </div>
       ))}
     </div>
@@ -241,11 +302,11 @@ function HeaderRow({ selectedQuarters }: { selectedQuarters: string[] }) {
 function TaskOrderDisplay({
   taskOrder,
   index,
-  selectedQuarters,
+  columnConfigs,
 }: {
   taskOrder: TaskOrder;
   index: number;
-  selectedQuarters: string[];
+  columnConfigs: ColumnConfig[];
 }) {
   const epics = taskOrder.portfolioEpics
     ? taskOrder.portfolioEpics
@@ -277,7 +338,7 @@ function TaskOrderDisplay({
         style={{
           display: "grid",
           gridTemplateColumns: `repeat(${
-            selectedQuarters.length + 1
+            columnConfigs.length + 1
           }, minmax(0,1fr))`,
         }}
       >
@@ -297,7 +358,7 @@ function TaskOrderDisplay({
             epic={e}
             index={i + 1}
             color={color}
-            selectedQuarters={selectedQuarters}
+            columnConfigs={columnConfigs}
           />
         ))}
       </div>
@@ -309,51 +370,40 @@ function EpicDisplay({
   epic,
   index,
   color,
-  selectedQuarters,
+  columnConfigs,
 }: {
   epic: Epic;
   index: number;
   color: string;
-  selectedQuarters: string[];
+  columnConfigs: ColumnConfig[];
 }) {
-  if (!epic.labels || epic.labels.length === 0) {
-    return <div></div>;
-  }
-  function checkIfAllLabelsAreInSelectedQuarters(
-    selectedQuarters: string[],
-    labels: string[]
-  ) {
-    return labels.every((label) => selectedQuarters.includes(label));
-  }
-  function checkIfAnyLabelsAreInSelectedQuarters(
-    selectedQuarters: string[],
-    labels: string[]
-  ) {
-    return labels.some((label) => selectedQuarters.includes(label));
-  }
-
-  if (!checkIfAnyLabelsAreInSelectedQuarters(selectedQuarters, epic.labels)) {
-    return <div></div>;
-  }
-
   const gridRowIndex = index + 1;
   let gridRow = `${gridRowIndex} / ${gridRowIndex + 1}`;
-  let gridColumn = getGridColumns(selectedQuarters, epic.labels);
 
-  function getGridColumns(selectedQuarters: string[], labels: string[]) {
-    const beginningLabel = labels[0];
-    const endLabel = labels[labels.length - 1];
+  const startDate = new Date(epic.plannedStart);
+  const endDate = new Date(epic.plannedEnd);
 
-    let beginningIndex = selectedQuarters.indexOf(beginningLabel);
-    if (beginningIndex === -1) {
-      beginningIndex = 0;
+  function isWithinDateRange(columnConfig: ColumnConfig) {
+    if (!columnConfig.startDate || !columnConfig.endDate) {
+      return false;
     }
 
-    const endIndex = selectedQuarters.indexOf(endLabel);
+    const columnStartDate = new Date(columnConfig.startDate);
+    const columnEndDate = new Date(columnConfig.endDate);
 
-    const gridColumn = `${beginningIndex + 2} / ${endIndex + 3}`;
-    return gridColumn;
+    return startDate >= columnStartDate && endDate <= columnEndDate;
   }
+
+  function getGridColumn(columnConfigs: ColumnConfig[]) {
+    for (let i = 0; i < columnConfigs.length; i++) {
+      if (isWithinDateRange(columnConfigs[i])) {
+        return `${i + 2} / ${i + 3}`;
+      }
+    }
+    return "";
+  }
+
+  const gridColumn = getGridColumn(columnConfigs);
   const stories: any = epic.stories;
 
   if (gridColumn === "") {
@@ -424,13 +474,10 @@ function MileStones() {
           {milestone === "Security Milestone" && <SecurityMilestone />}
           {milestone === "EPA Comm Milestone" && <EPACommMilestone />}
         </div>
-      ))}
+      ))}{" "}
     </div>
   );
-
   function EmptyMilestone() {
-    const invisibleChar = "\u200B";
-
     return (
       <div className="flex justify-center text-2xl z-50 w-full items-center select-none">
         <TooltipProvider>
@@ -446,11 +493,10 @@ function MileStones() {
       </div>
     );
   }
-
   function TestingMilestone() {
     const circleChar = "\u25CF";
     return (
-      <div className="flex justify-center text-2xl z-50 text-yellow-300  items-center select-none">
+      <div className="flex justify-center text-2xl z-50 text-yellow-300 items-center select-none">
         <TooltipProvider>
           <Tooltip delayDuration={10}>
             <TooltipTrigger>
@@ -464,11 +510,10 @@ function MileStones() {
       </div>
     );
   }
-
   function CapabilityDelivery() {
     const diamondChar = "\u25C6";
     return (
-      <div className="flex justify-center text-2xl z-50 text-orange-600  items-center select-none">
+      <div className="flex justify-center text-2xl z-50 text-orange-600 items-center select-none">
         <TooltipProvider>
           <Tooltip delayDuration={10}>
             <TooltipTrigger>
@@ -485,7 +530,7 @@ function MileStones() {
   function SecurityMilestone() {
     const triangleChar = "\u25B2";
     return (
-      <div className="flex justify-center text-2xl z-50 text-gray-600  items-center select-none">
+      <div className="flex justify-center text-2xl z-50 text-gray-600 items-center select-none">
         <TooltipProvider>
           <Tooltip delayDuration={10}>
             <TooltipTrigger>
@@ -502,7 +547,7 @@ function MileStones() {
   function EPACommMilestone() {
     const squareChar = "\u25A0";
     return (
-      <div className="flex justify-center text-2xl z-50 text-green-600  items-center select-none">
+      <div className="flex justify-center text-2xl z-50 text-green-600 items-center select-none">
         <TooltipProvider>
           <Tooltip delayDuration={10}>
             <TooltipTrigger>
