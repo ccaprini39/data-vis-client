@@ -14,52 +14,34 @@ import {
 } from "@/components/ui/tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import { Button } from "@/components/ui/button";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
+interface ColumnConfig {
+  startDate: Date | null;
+  endDate: Date | null;
+  title: string;
+}
 
 export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
-  const [startingYear, setStartingYear] = useState(
-    new Date().getFullYear().toString()
-  );
-  const [startingQuarter, setStartingQuarter] = useState("Q1");
-  const [numberOfQuarters, setNumberOfQuarters] = useState(8);
-
-  /**
-   *
-   * @param n number of quarters to get
-   * @param year the year to start from
-   * @param startingQuarter the quarter to start from
-   */
-  function getNextNQuarters(
-    n: number,
-    year: string,
-    startingQuarter: string = "Q1"
-  ) {
-    const quarters = ["Q1", "Q2", "Q3", "Q4"];
-    const selectedQuarters = [];
-    let currentYear = parseInt(year);
-    let currentYearString = currentYear.toString().slice(-2);
-    let currentQuarter = startingQuarter;
-    for (let i = 0; i < n; i++) {
-      selectedQuarters.push(`FY${currentYearString}${currentQuarter}`);
-      let nextQuarterIndex = quarters.indexOf(currentQuarter) + 1;
-      if (nextQuarterIndex === 4) {
-        currentYear++;
-        currentYearString = currentYear.toString().slice(-2);
-        currentQuarter = "Q1";
-      } else {
-        currentQuarter = quarters[nextQuarterIndex];
-      }
-    }
-    return selectedQuarters;
-  }
-  const [selectedQuarters, setSelectedQuarters] = useState<string[]>(
-    getNextNQuarters(8, "Q1", startingYear)
+  const [numberOfColumns, setNumberOfColumns] = useState(8);
+  const [columnConfigs, setColumnConfigs] = useState<ColumnConfig[]>(
+    Array(numberOfColumns).fill({
+      startDate: null,
+      endDate: null,
+      title: "",
+    })
   );
 
   useEffect(() => {
-    setSelectedQuarters(
-      getNextNQuarters(numberOfQuarters, startingYear, startingQuarter)
+    setColumnConfigs(
+      Array(numberOfColumns).fill({
+        startDate: null,
+        endDate: null,
+        title: "",
+      })
     );
-  }, [startingYear, startingQuarter, numberOfQuarters]);
+  }, [numberOfColumns]);
 
   const componentRef = useRef<HTMLDivElement>(null);
 
@@ -80,53 +62,18 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
     }
   }
 
-  const handleYearChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const year = parseInt(e.target.value);
-    const yearString = year.toString();
-    setStartingYear(yearString);
-  };
-
-  //so I want them to be abl to selct the starting, starting quarter, and then the number of quarters to display
-  function QuarterSelector() {
+  function ColumnSelector() {
     return (
       <div className="flex flex-row justify-between">
         <div>
-          <label htmlFor="year-input" className="mr-2 mx-2">
-            Starting Year:
-          </label>
-          <input
-            id="year-input"
-            type="number"
-            value={startingYear}
-            onChange={handleYearChange}
-            className="border px-2 py-1 rounded"
-          />
-        </div>
-        <div>
-          <label htmlFor="quarter-input" className="mr-2 mx-2">
-            Starting Quarter:
+          <label htmlFor="columns-input" className="mr-2 mx-2">
+            Number of Columns:
           </label>
           <select
-            id="quarter-input"
+            id="columns-input"
             className="border px-2 py-1 rounded"
-            value={startingQuarter}
-            onChange={(e) => setStartingQuarter(e.target.value)}
-          >
-            <option value="Q1">Q1</option>
-            <option value="Q2">Q2</option>
-            <option value="Q3">Q3</option>
-            <option value="Q4">Q4</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor="quarters-input" className="mr-2 mx-2">
-            Number of Quarters:
-          </label>
-          <select
-            id="quarters-input"
-            className="border px-2 py-1 rounded"
-            value={numberOfQuarters}
-            onChange={(e) => setNumberOfQuarters(parseInt(e.target.value))}
+            value={numberOfColumns}
+            onChange={(e) => setNumberOfColumns(parseInt(e.target.value))}
           >
             <option value="2">2</option>
             <option value="4">4</option>
@@ -145,19 +92,22 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
   return (
     <div className="w-full h-full flex flex-col">
       <div className="flex justify-between items-center">
-        <QuarterSelector />
+        <ColumnSelector />
         <Button onClick={handleScreenshot}>Save as Image</Button>
       </div>
       <div ref={componentRef}>
-        <Title startingYear={parseInt(startingYear)} />
-        <HeaderRow selectedQuarters={selectedQuarters} />
+        <Title />
+        <HeaderRow
+          columnConfigs={columnConfigs}
+          setColumnConfigs={setColumnConfigs}
+        />
         {taskOrders
           ? taskOrders.map((to, index) => (
               <TaskOrderDisplay
                 key={index}
                 taskOrder={to}
                 index={index}
-                selectedQuarters={selectedQuarters}
+                columnConfigs={columnConfigs}
               />
             ))
           : null}
@@ -166,15 +116,12 @@ export default function Roadmap({ taskOrders }: { taskOrders: TaskOrder[] }) {
   );
 }
 
-function Title({ startingYear }: { startingYear: number }) {
+function Title() {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const previousYear = startingYear - 1;
-  const nextYear = startingYear + 1;
-
-  const defaultTitle = `Roadmap: October ${previousYear} - October ${nextYear}`;
+  const defaultTitle = "Roadmap";
 
   const handleTitleClick = () => {
     setIsEditing(true);
@@ -225,16 +172,42 @@ function Title({ startingYear }: { startingYear: number }) {
   );
 }
 
-function HeaderRow({ selectedQuarters }: { selectedQuarters: string[] }) {
+function HeaderRow({
+  columnConfigs,
+  setColumnConfigs,
+}: {
+  columnConfigs: ColumnConfig[];
+  setColumnConfigs: React.Dispatch<React.SetStateAction<ColumnConfig[]>>;
+}) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [headerTitles, setHeaderTitles] = useState<string[]>(selectedQuarters);
+  const [selectedColumnIndex, setSelectedColumnIndex] = useState<number | null>(
+    null
+  );
   const inputRef = useRef<HTMLInputElement>(null);
+  const dateRangeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setHeaderTitles(selectedQuarters);
-  }, [selectedQuarters]);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dateRangeRef.current &&
+        !dateRangeRef.current.contains(event.target as Node)
+      ) {
+        setSelectedColumnIndex(null);
+      }
+    };
 
-  const handleHeaderClick = (index: number) => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  function getBackgroundColor(index: number) {
+    const colors = ["#4C1D95", "#000080", "#6022B1", "#00008B"];
+    return colors[index % 4];
+  }
+
+  const handleHeaderDoubleClick = (index: number) => {
     setEditingIndex(index);
   };
 
@@ -242,13 +215,29 @@ function HeaderRow({ selectedQuarters }: { selectedQuarters: string[] }) {
     e: React.ChangeEvent<HTMLInputElement>,
     index: number
   ) => {
-    const newHeaderTitles = [...headerTitles];
-    newHeaderTitles[index] = e.target.value;
-    setHeaderTitles(newHeaderTitles);
+    const newColumnConfigs = [...columnConfigs];
+    newColumnConfigs[index] = {
+      ...newColumnConfigs[index],
+      title: e.target.value,
+    };
+    setColumnConfigs(newColumnConfigs);
   };
 
   const handleHeaderBlur = () => {
     setEditingIndex(null);
+  };
+
+  const handleDateChange = (
+    date: Date | null,
+    index: number,
+    type: "start" | "end"
+  ) => {
+    const newColumnConfigs = [...columnConfigs];
+    newColumnConfigs[index] = {
+      ...newColumnConfigs[index],
+      [type === "start" ? "startDate" : "endDate"]: date,
+    };
+    setColumnConfigs(newColumnConfigs);
   };
 
   useEffect(() => {
@@ -257,35 +246,57 @@ function HeaderRow({ selectedQuarters }: { selectedQuarters: string[] }) {
     }
   }, [editingIndex]);
 
-  function getBackgroundColor(index: number) {
-    const colors = ["#4C1D95", "#000080", "#6022B1", "#00008B"];
-    return colors[index % 4];
-  }
-
   return (
     <div className="h-8 flex flex-row">
       <div className="flex-1"></div>
-      {headerTitles.map((headerTitle, index) => (
+      {columnConfigs.map((config, index) => (
         <div
           key={index}
-          className="flex-1 flex flex-col text-white text-center rounded-md"
+          className={`flex-1 flex flex-col text-white text-center rounded-md relative ${
+            selectedColumnIndex === index ? "border-2 border-white" : ""
+          }`}
           style={{ backgroundColor: getBackgroundColor(index) }}
+          onClick={() => setSelectedColumnIndex(index)}
         >
           {editingIndex === index ? (
             <input
               ref={inputRef}
               type="text"
-              value={headerTitle}
+              value={config.title}
               onChange={(e) => handleHeaderChange(e, index)}
               onBlur={handleHeaderBlur}
               className="text-white bg-transparent focus:outline-none text-center"
             />
           ) : (
+            <div onDoubleClick={() => handleHeaderDoubleClick(index)}>
+              {config.title || `Column ${index + 1}`}
+            </div>
+          )}
+          {selectedColumnIndex === index && (
             <div
-              className="cursor-text"
-              onClick={() => handleHeaderClick(index)}
+              ref={dateRangeRef}
+              className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 text-black dark:text-white p-4 rounded shadow"
             >
-              {headerTitle}
+              <div className="mb-4">
+                <label className="block mb-1">Start Date:</label>
+                <DatePicker
+                  selected={config.startDate}
+                  onChange={(date: Date | null) =>
+                    handleDateChange(date, index, "start")
+                  }
+                  className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 w-full text-black dark:text-white bg-white dark:bg-gray-800"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">End Date:</label>
+                <DatePicker
+                  selected={config.endDate}
+                  onChange={(date: Date | null) =>
+                    handleDateChange(date, index, "end")
+                  }
+                  className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 w-full text-black dark:text-white bg-white dark:bg-gray-800"
+                />
+              </div>
             </div>
           )}
         </div>
@@ -297,11 +308,11 @@ function HeaderRow({ selectedQuarters }: { selectedQuarters: string[] }) {
 function TaskOrderDisplay({
   taskOrder,
   index,
-  selectedQuarters,
+  columnConfigs,
 }: {
   taskOrder: TaskOrder;
   index: number;
-  selectedQuarters: string[];
+  columnConfigs: ColumnConfig[];
 }) {
   const capabilities = taskOrder.portfolioEpics
     ? taskOrder.portfolioEpics.map((pe) => pe.capabilities).flat()
@@ -331,7 +342,7 @@ function TaskOrderDisplay({
         style={{
           display: "grid",
           gridTemplateColumns: `repeat(${
-            selectedQuarters.length + 1
+            columnConfigs.length + 1
           }, minmax(0,1fr))`,
         }}
       >
@@ -351,7 +362,7 @@ function TaskOrderDisplay({
             capability={c}
             index={i + 1}
             color={color}
-            selectedQuarters={selectedQuarters}
+            columnConfigs={columnConfigs}
           />
         ))}
       </div>
@@ -363,71 +374,40 @@ function CapabilityDisplay({
   capability,
   index,
   color,
-  selectedQuarters,
+  columnConfigs,
 }: {
   capability: Capability;
   index: number;
   color: string;
-  selectedQuarters: string[];
+  columnConfigs: ColumnConfig[];
 }) {
-  //check if the capability labels are in the selectedQuarters
-  //if not, return an empty div
-  if (!capability.labels || capability.labels.length === 0) {
-    return <div></div>;
-  }
-  function checkIfAllLabelsAreInSelectedQuarters(
-    selectedQuarters: string[],
-    labels: string[]
-  ) {
-    return labels.every((label) => selectedQuarters.includes(label));
-  }
-  function checkIfAnyLabelsAreInSelectedQuarters(
-    selectedQuarters: string[],
-    labels: string[]
-  ) {
-    return labels.some((label) => selectedQuarters.includes(label));
-  }
-
-  if (
-    !checkIfAnyLabelsAreInSelectedQuarters(selectedQuarters, capability.labels)
-  ) {
-    return <div></div>;
-  }
-
   const gridRowIndex = index + 1;
   let gridRow = `${gridRowIndex} / ${gridRowIndex + 1}`;
-  let gridColumn = getGridColumns(selectedQuarters, capability.labels);
 
-  const sampleNextEightQuarters = [
-    "FY22Q1",
-    "FY22Q2",
-    "FY22Q3",
-    "FY22Q4",
-    "FY23Q1",
-    "FY23Q2",
-    "FY23Q3",
-    "FY23Q4",
-  ];
+  const startDate = new Date(capability.plannedStart);
+  const endDate = new Date(capability.plannedEnd);
 
-  const sampleLabels = ["FY24Q1", "FY24Q2"];
-
-  function getGridColumns(selectedQuarters: string[], labels: string[]) {
-    const beginningLabel = labels[0];
-    const endLabel = labels[labels.length - 1];
-
-    let beginningIndex = selectedQuarters.indexOf(beginningLabel);
-    if (beginningIndex === -1) {
-      beginningIndex = 0;
+  function isWithinDateRange(columnConfig: ColumnConfig) {
+    if (!columnConfig.startDate || !columnConfig.endDate) {
+      return false;
     }
-    console.log("selectedQuarters", selectedQuarters);
-    console.log("beginningLabel", beginningLabel);
-    console.log("beginningIndex", beginningIndex);
 
-    const endIndex = selectedQuarters.indexOf(endLabel);
+    const columnStartDate = new Date(columnConfig.startDate);
+    const columnEndDate = new Date(columnConfig.endDate);
 
-    const gridColumn = `${beginningIndex + 2} / ${endIndex + 3}`;
-    return gridColumn;
+    return startDate >= columnStartDate && endDate <= columnEndDate;
   }
+
+  function getGridColumn(columnConfigs: ColumnConfig[]) {
+    for (let i = 0; i < columnConfigs.length; i++) {
+      if (isWithinDateRange(columnConfigs[i])) {
+        return `${i + 2} / ${i + 3}`;
+      }
+    }
+    return "";
+  }
+
+  const gridColumn = getGridColumn(columnConfigs);
   const epics: any = capability.epics;
 
   if (gridColumn === "") {
@@ -456,9 +436,6 @@ function CapabilityDisplay({
               </li>
             ))}
           </ul>
-          {/* <pre onClick={() => alert(capability)} className="text-xs">
-            {JSON.stringify(capability, null, 2)}
-          </pre> */}
         </HoverCardContent>
       </HoverCard>
       <MileStones />
@@ -472,10 +449,11 @@ function MileStones() {
     "Capability Delivery",
     "Testing Milestone",
     "Security Milestone",
-    "EPA CommMilestone",
+    "EPA Comm Milestone",
   ];
 
   const [milestones, setMilestones] = useState(["empty", "empty", "empty"]);
+
   async function handleClick(index: number) {
     const newMilestones = [...milestones];
     newMilestones[index] =
@@ -485,6 +463,7 @@ function MileStones() {
       ];
     setMilestones(newMilestones);
   }
+
   return (
     <div className="w-full flex flex-row justify-between h-1.5 rounded-md">
       {milestones.map((milestone, i) => (
@@ -502,6 +481,7 @@ function MileStones() {
       ))}
     </div>
   );
+
   function EmptyMilestone() {
     return (
       <div className="flex justify-center text-2xl z-50 w-full items-center select-none">
@@ -518,6 +498,7 @@ function MileStones() {
       </div>
     );
   }
+
   function TestingMilestone() {
     const circleChar = "\u25CF";
     return (
