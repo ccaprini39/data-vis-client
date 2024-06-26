@@ -43,7 +43,6 @@ export default function CustomView({ taskOrders }: CustomViewProps) {
     })
   );
 
-  // Main state (used for rendering the chart)
   const [selectedTaskOrder, setSelectedTaskOrder] = useState<TaskOrder | null>(
     null
   );
@@ -54,17 +53,6 @@ export default function CustomView({ taskOrders }: CustomViewProps) {
   const [selectedEpic, setSelectedEpic] = useState<Epic | null>(null);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [displayLevel, setDisplayLevel] = useState<
-    "taskOrder" | "portfolioEpic" | "capability" | "epic" | "story"
-  >("taskOrder");
-
-  // Temporary state (used for dropdown selections)
-  const [tempTaskOrder, setTempTaskOrder] = useState<TaskOrder | null>(null);
-  const [tempPortfolioEpic, setTempPortfolioEpic] =
-    useState<PortfolioEpic | null>(null);
-  const [tempCapability, setTempCapability] = useState<Capability | null>(null);
-  const [tempEpic, setTempEpic] = useState<Epic | null>(null);
-  const [tempStory, setTempStory] = useState<Story | null>(null);
-  const [tempDisplayLevel, setTempDisplayLevel] = useState<
     "taskOrder" | "portfolioEpic" | "capability" | "epic" | "story"
   >("taskOrder");
 
@@ -129,15 +117,15 @@ export default function CustomView({ taskOrders }: CustomViewProps) {
       <>
         <select
           className={dropdownClasses}
-          value={tempTaskOrder?.name || ""}
+          value={selectedTaskOrder?.name || ""}
           onChange={(e) => {
             const to = taskOrders.find((to) => to.name === e.target.value);
-            setTempTaskOrder(to || null);
-            setTempPortfolioEpic(null);
-            setTempCapability(null);
-            setTempEpic(null);
-            setTempStory(null);
-            setTempDisplayLevel("taskOrder");
+            setSelectedTaskOrder(to || null);
+            setSelectedPortfolioEpic(null);
+            setSelectedCapability(null);
+            setSelectedEpic(null);
+            setSelectedStory(null);
+            setDisplayLevel("taskOrder");
           }}
         >
           <option value="">Select Task Order</option>
@@ -150,21 +138,21 @@ export default function CustomView({ taskOrders }: CustomViewProps) {
 
         <select
           className={dropdownClasses}
-          value={tempPortfolioEpic?.name || ""}
+          value={selectedPortfolioEpic?.name || ""}
           onChange={(e) => {
-            const pe = tempTaskOrder?.portfolioEpics.find(
+            const pe = selectedTaskOrder?.portfolioEpics.find(
               (pe) => pe.name === e.target.value
             );
-            setTempPortfolioEpic(pe || null);
-            setTempCapability(null);
-            setTempEpic(null);
-            setTempStory(null);
-            setTempDisplayLevel("portfolioEpic");
+            setSelectedPortfolioEpic(pe || null);
+            setSelectedCapability(null);
+            setSelectedEpic(null);
+            setSelectedStory(null);
+            setDisplayLevel("portfolioEpic");
           }}
-          disabled={!tempTaskOrder}
+          disabled={!selectedTaskOrder}
         >
           <option value="">Select Portfolio Epic</option>
-          {tempTaskOrder?.portfolioEpics.map((pe) => (
+          {selectedTaskOrder?.portfolioEpics.map((pe) => (
             <option key={pe.name} value={pe.name} title={pe.name}>
               {pe.name}
             </option>
@@ -173,20 +161,20 @@ export default function CustomView({ taskOrders }: CustomViewProps) {
 
         <select
           className={dropdownClasses}
-          value={tempCapability?.name || ""}
+          value={selectedCapability?.name || ""}
           onChange={(e) => {
-            const cap = tempPortfolioEpic?.capabilities.find(
+            const cap = selectedPortfolioEpic?.capabilities.find(
               (c) => c.name === e.target.value
             );
-            setTempCapability(cap || null);
-            setTempEpic(null);
-            setTempStory(null);
-            setTempDisplayLevel("capability");
+            setSelectedCapability(cap || null);
+            setSelectedEpic(null);
+            setSelectedStory(null);
+            setDisplayLevel("capability");
           }}
-          disabled={!tempPortfolioEpic}
+          disabled={!selectedPortfolioEpic}
         >
           <option value="">Select Capability</option>
-          {tempPortfolioEpic?.capabilities.map((cap) => (
+          {selectedPortfolioEpic?.capabilities.map((cap) => (
             <option key={cap.name} value={cap.name} title={cap.name}>
               {cap.name}
             </option>
@@ -195,19 +183,19 @@ export default function CustomView({ taskOrders }: CustomViewProps) {
 
         <select
           className={dropdownClasses}
-          value={tempEpic?.name || ""}
+          value={selectedEpic?.name || ""}
           onChange={(e) => {
-            const epic = tempCapability?.epics.find(
+            const epic = selectedCapability?.epics.find(
               (ep) => ep.name === e.target.value
             );
-            setTempEpic(epic || null);
-            setTempStory(null);
-            setTempDisplayLevel("epic");
+            setSelectedEpic(epic || null);
+            setSelectedStory(null);
+            setDisplayLevel("epic");
           }}
-          disabled={!tempCapability}
+          disabled={!selectedCapability}
         >
           <option value="">Select Epic</option>
-          {tempCapability?.epics.map((epic) => (
+          {selectedCapability?.epics.map((epic) => (
             <option key={epic.name} value={epic.name} title={epic.name}>
               {epic.name}
             </option>
@@ -218,13 +206,7 @@ export default function CustomView({ taskOrders }: CustomViewProps) {
   }
 
   function handleShowChart() {
-    if (tempTaskOrder) {
-      setSelectedTaskOrder(tempTaskOrder);
-      setSelectedPortfolioEpic(tempPortfolioEpic);
-      setSelectedCapability(tempCapability);
-      setSelectedEpic(tempEpic);
-      setSelectedStory(tempStory);
-      setDisplayLevel(tempDisplayLevel);
+    if (selectedTaskOrder) {
       setShowChart(true);
     } else {
       alert("Please select at least a Task Order to display the chart.");
