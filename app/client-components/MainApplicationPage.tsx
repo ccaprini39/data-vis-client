@@ -7,6 +7,7 @@ import PortfolioEpicsView_labels from "./PortfolioEpicView_labels";
 import EpicsView from "./EpicsView";
 import StoryView from "./StoryView";
 import StoryView_labels from "./StoryView_labels";
+import CustomView from "./CustomView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import CapabilitiesView from "./CapabilitiesView";
@@ -74,6 +75,9 @@ export default function MainApplicationPage() {
             <TabsTrigger disabled={tableData.length === 0} value="stories">
               Story View
             </TabsTrigger>
+            <TabsTrigger disabled={tableData.length === 0} value="custom_view">
+              Custom View
+            </TabsTrigger>
             <TabsTrigger
               disabled={tableData.length === 0}
               value="portfolio_epics_labels"
@@ -124,6 +128,9 @@ export default function MainApplicationPage() {
         </TabsContent>
         <TabsContent value="stories" className="p-4">
           <StoryView taskOrders={tableData} />
+        </TabsContent>
+        <TabsContent value="custom_view" className="p-4">
+          <CustomView taskOrders={tableData} />
         </TabsContent>
         <TabsContent value="portfolio_epics_labels" className="p-4">
           <PortfolioEpicsView_labels taskOrders={tableData} />
