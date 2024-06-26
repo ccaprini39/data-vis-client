@@ -15,7 +15,7 @@ import {
 import "react-tooltip/dist/react-tooltip.css";
 import { Button } from "@/components/ui/button";
 
-export default function PortfolioEpicsView({
+export default function PortfolioEpicsView_labels({
   taskOrders,
 }: {
   taskOrders: TaskOrder[];

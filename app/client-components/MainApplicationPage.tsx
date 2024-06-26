@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { parseXLSFile, TaskOrder } from "./data-manipulation";
 import { ModeToggle } from "@/components/ModeToggleButton";
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
-import PortfolioEpicsView from "./PortfolioEpicView_labels";
+import PortfolioEpicsView_labels from "./PortfolioEpicView_labels";
 import EpicsView from "./EpicsView";
-import StoryView from "./StoryView_labels";
+import StoryView_labels from "./StoryView_labels";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import CapabilitiesView from "./CapabilitiesView";
@@ -59,7 +59,7 @@ export default function MainApplicationPage() {
             <TabsTrigger value="file">File</TabsTrigger>
             <TabsTrigger
               disabled={tableData.length === 0}
-              value="portfolio_epics"
+              value="portfolio_epics_labels"
             >
               Portfolio Epics View
             </TabsTrigger>
@@ -70,7 +70,10 @@ export default function MainApplicationPage() {
             <TabsTrigger disabled={tableData.length === 0} value="epics">
               Epics View
             </TabsTrigger>
-            <TabsTrigger disabled={tableData.length === 0} value="stories">
+            <TabsTrigger
+              disabled={tableData.length === 0}
+              value="stories_labels"
+            >
               Story View
             </TabsTrigger>
             {/* <TabsTrigger disabled={tableData.length === 0} value="debug">Debug</TabsTrigger> */}
@@ -96,8 +99,8 @@ export default function MainApplicationPage() {
             Reset
           </Button>
         </TabsContent>
-        <TabsContent value="portfolio_epics" className="p-4">
-          <PortfolioEpicsView taskOrders={tableData} />
+        <TabsContent value="portfolio_epics_labels" className="p-4">
+          <PortfolioEpicsView_labels taskOrders={tableData} />
         </TabsContent>
         <TabsContent value="capabilities" className="p-4">
           {tableData.length === 0 ? (
@@ -110,8 +113,8 @@ export default function MainApplicationPage() {
         <TabsContent value="epics" className="p-4">
           <EpicsView taskOrders={tableData} />
         </TabsContent>
-        <TabsContent value="stories" className="p-4">
-          <StoryView taskOrders={tableData} />
+        <TabsContent value="stories_labels" className="p-4">
+          <StoryView_labels taskOrders={tableData} />
         </TabsContent>
         {/* <TabsContent value="debug" className="p-4">
           <pre>{JSON.stringify(tableData, null, 2)}</pre>

@@ -15,7 +15,11 @@ import {
 import "react-tooltip/dist/react-tooltip.css";
 import { Button } from "@/components/ui/button";
 
-export default function StoryView({ taskOrders }: { taskOrders: TaskOrder[] }) {
+export default function StoryView_labels({
+  taskOrders,
+}: {
+  taskOrders: TaskOrder[];
+}) {
   const [startingYear, setStartingYear] = useState(
     new Date().getFullYear().toString()
   );
