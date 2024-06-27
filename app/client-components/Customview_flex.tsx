@@ -35,7 +35,7 @@ interface CustomViewProps {
 
 interface Section {
   id: string;
-  taskOrder: TaskOrder;
+  taskOrder: TaskOrder | null;
   portfolioEpic: PortfolioEpic | null;
   capability: Capability | null;
   epic: Epic | null;
@@ -149,14 +149,20 @@ export default function CustomView({ taskOrders }: CustomViewProps) {
       "border px-2 py-1 rounded w-48 truncate text-ellipsis";
 
     const addOrUpdateSection = () => {
-      if (tempTaskOrder) {
+      if (
+        tempTaskOrder ||
+        tempPortfolioEpic ||
+        tempCapability ||
+        tempEpic ||
+        tempStory
+      ) {
         const newSection: Section = {
           id: selectedSectionId || Date.now().toString(),
-          taskOrder: tempTaskOrder,
-          portfolioEpic: tempPortfolioEpic,
-          capability: tempCapability,
-          epic: tempEpic,
-          story: tempStory,
+          taskOrder: tempTaskOrder || null,
+          portfolioEpic: tempPortfolioEpic || null,
+          capability: tempCapability || null,
+          epic: tempEpic || null,
+          story: tempStory || null,
           displayLevel: tempDisplayLevel,
         };
 
@@ -204,7 +210,12 @@ export default function CustomView({ taskOrders }: CustomViewProps) {
           <option value="">Select Section to Edit</option>
           {selectedSections.map((section, index) => (
             <option key={section.id} value={section.id}>
-              Section {index + 1}: {section.taskOrder.name}
+              Section {index + 1}:{" "}
+              {section.taskOrder?.name ||
+                section.portfolioEpic?.name ||
+                section.capability?.name ||
+                section.epic?.name ||
+                section.story?.name}
             </option>
           ))}
         </select>
@@ -234,66 +245,102 @@ export default function CustomView({ taskOrders }: CustomViewProps) {
           className={dropdownClasses}
           value={tempPortfolioEpic?.name || ""}
           onChange={(e) => {
-            const pe = tempTaskOrder?.portfolioEpics.find(
-              (pe) => pe.name === e.target.value
-            );
+            const pe = taskOrders
+              .flatMap((to) => to.portfolioEpics)
+              .find((pe) => pe.name === e.target.value);
             setTempPortfolioEpic(pe || null);
             setTempCapability(null);
             setTempEpic(null);
             setTempStory(null);
             setTempDisplayLevel("portfolioEpic");
           }}
-          disabled={!tempTaskOrder}
         >
           <option value="">Select Portfolio Epic</option>
-          {tempTaskOrder?.portfolioEpics.map((pe) => (
-            <option key={pe.name} value={pe.name} title={pe.name}>
-              {pe.name}
-            </option>
-          ))}
+          {taskOrders
+            .flatMap((to) => to.portfolioEpics)
+            .map((pe) => (
+              <option key={pe.name} value={pe.name} title={pe.name}>
+                {pe.name}
+              </option>
+            ))}
         </select>
 
         <select
           className={dropdownClasses}
           value={tempCapability?.name || ""}
           onChange={(e) => {
-            const cap = tempPortfolioEpic?.capabilities.find(
-              (c) => c.name === e.target.value
-            );
+            const cap = taskOrders
+              .flatMap((to) => to.portfolioEpics)
+              .flatMap((pe) => pe.capabilities)
+              .find((c) => c.name === e.target.value);
             setTempCapability(cap || null);
             setTempEpic(null);
             setTempStory(null);
             setTempDisplayLevel("capability");
           }}
-          disabled={!tempPortfolioEpic}
         >
           <option value="">Select Capability</option>
-          {tempPortfolioEpic?.capabilities.map((cap) => (
-            <option key={cap.name} value={cap.name} title={cap.name}>
-              {cap.name}
-            </option>
-          ))}
+          {taskOrders
+            .flatMap((to) => to.portfolioEpics)
+            .flatMap((pe) => pe.capabilities)
+            .map((cap) => (
+              <option key={cap.name} value={cap.name} title={cap.name}>
+                {cap.name}
+              </option>
+            ))}
         </select>
 
         <select
           className={dropdownClasses}
           value={tempEpic?.name || ""}
           onChange={(e) => {
-            const epic = tempCapability?.epics.find(
-              (ep) => ep.name === e.target.value
-            );
+            const epic = taskOrders
+              .flatMap((to) => to.portfolioEpics)
+              .flatMap((pe) => pe.capabilities)
+              .flatMap((cap) => cap.epics)
+              .find((ep) => ep.name === e.target.value);
             setTempEpic(epic || null);
             setTempStory(null);
             setTempDisplayLevel("epic");
           }}
-          disabled={!tempCapability}
         >
           <option value="">Select Epic</option>
-          {tempCapability?.epics.map((epic) => (
-            <option key={epic.name} value={epic.name} title={epic.name}>
-              {epic.name}
-            </option>
-          ))}
+          {taskOrders
+            .flatMap((to) => to.portfolioEpics)
+            .flatMap((pe) => pe.capabilities)
+            .flatMap((cap) => cap.epics)
+            .map((epic) => (
+              <option key={epic.name} value={epic.name} title={epic.name}>
+                {epic.name}
+              </option>
+            ))}
+        </select>
+
+        <select
+          className={dropdownClasses}
+          value={tempStory?.name || ""}
+          onChange={(e) => {
+            const story = taskOrders
+              .flatMap((to) => to.portfolioEpics)
+              .flatMap((pe) => pe.capabilities)
+              .flatMap((cap) => cap.epics)
+              .flatMap((epic) => epic.stories)
+              .find((story) => story.name === e.target.value);
+            setTempStory(story || null);
+            setTempDisplayLevel("story");
+          }}
+        >
+          <option value="">Select Story</option>
+          {taskOrders
+            .flatMap((to) => to.portfolioEpics)
+            .flatMap((pe) => pe.capabilities)
+            .flatMap((cap) => cap.epics)
+            .flatMap((epic) => epic.stories)
+            .map((story) => (
+              <option key={story.name} value={story.name} title={story.name}>
+                {story.name}
+              </option>
+            ))}
         </select>
 
         <Button onClick={addOrUpdateSection}>
@@ -538,7 +585,7 @@ function ChartDisplay({
   displayLevel,
   columnConfigs,
 }: {
-  taskOrder: TaskOrder;
+  taskOrder: TaskOrder | null;
   portfolioEpic: PortfolioEpic | null;
   capability: Capability | null;
   epic: Epic | null;
@@ -559,8 +606,10 @@ function ChartDisplay({
 
   switch (displayLevel) {
     case "taskOrder":
-      itemsToDisplay = taskOrder.portfolioEpics;
-      parentLabel = { type: "TO", name: taskOrder.name };
+      if (taskOrder) {
+        itemsToDisplay = taskOrder.portfolioEpics;
+        parentLabel = taskOrder ? { type: "TO", name: taskOrder.name } : null;
+      }
       break;
     case "portfolioEpic":
       if (portfolioEpic) {
