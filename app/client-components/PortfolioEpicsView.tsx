@@ -66,28 +66,33 @@ export default function PortfolioEpicsView({
   }
 
   function ColumnSelector() {
+    const incrementColumns = () => {
+      setNumberOfColumns((prev) => prev + 1);
+    };
+
+    const decrementColumns = () => {
+      setNumberOfColumns((prev) => Math.max(1, prev - 1));
+    };
+
     return (
-      <div className="flex flex-row justify-between">
-        <div>
-          <label htmlFor="columns-input" className="mr-2 mx-2">
-            Number of Columns:
-          </label>
-          <select
-            id="columns-input"
-            className="border px-2 py-1 rounded"
-            value={numberOfColumns}
-            onChange={(e) => setNumberOfColumns(parseInt(e.target.value))}
-          >
-            <option value="2">2</option>
-            <option value="4">4</option>
-            <option value="6">6</option>
-            <option value="8">8</option>
-            <option value="10">10</option>
-            <option value="12">12</option>
-            <option value="14">14</option>
-            <option value="16">16</option>
-          </select>
-        </div>
+      <div className="flex items-center">
+        <label htmlFor="columns-input" className="mr-2 mx-2">
+          Number of Columns:
+        </label>
+        <button
+          onClick={decrementColumns}
+          className="px-2 py-1 border rounded-l"
+          disabled={numberOfColumns <= 1}
+        >
+          -
+        </button>
+        <span className="px-4 py-1 border-t border-b">{numberOfColumns}</span>
+        <button
+          onClick={incrementColumns}
+          className="px-2 py-1 border rounded-r"
+        >
+          +
+        </button>
       </div>
     );
   }
