@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Epic, TaskOrder } from "./data-manipulation";
+import { Capability, TaskOrder } from "./data-manipulation";
 import domtoimage from "dom-to-image";
 import {
   HoverCard,
@@ -24,7 +24,11 @@ interface ColumnConfig {
   title: string;
 }
 
-export default function EpicsView({ taskOrders }: { taskOrders: TaskOrder[] }) {
+export default function CapabilitiesView({
+  taskOrders,
+}: {
+  taskOrders: TaskOrder[];
+}) {
   const [numberOfColumns, setNumberOfColumns] = useState(8);
   const [columnConfigs, setColumnConfigs] = useState<ColumnConfig[]>(
     Array(numberOfColumns).fill({
@@ -56,7 +60,7 @@ export default function EpicsView({ taskOrders }: { taskOrders: TaskOrder[] }) {
       try {
         const dataUrl = await domtoimage.toPng(componentRef.current);
         const link = document.createElement("a");
-        link.download = "epics-screenshot.png";
+        link.download = "capabilities-screenshot.png";
         link.href = dataUrl;
         link.click();
       } catch (error) {
@@ -184,7 +188,7 @@ function Title() {
   const [title, setTitle] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const defaultTitle = "Epics View";
+  const defaultTitle = "Capabilities View";
 
   const handleTitleClick = () => {
     setIsEditing(true);
@@ -389,13 +393,11 @@ function TaskOrderDisplay({
   columnConfigs: ColumnConfig[];
   showAcrossColumns: boolean;
 }) {
-  const epics = taskOrder.portfolioEpics
-    ? taskOrder.portfolioEpics
-        .map((pe) => pe.capabilities.map((c) => c.epics))
-        .flat(2)
+  const capabilities = taskOrder.portfolioEpics
+    ? taskOrder.portfolioEpics.map((pe) => pe.capabilities).flat()
     : [];
 
-  if (epics.length === 0) {
+  if (capabilities.length === 0) {
     return <></>;
   }
 
@@ -406,7 +408,7 @@ function TaskOrderDisplay({
   }
   const color = getShadeOfPurple(index);
   const firstColumn = "1";
-  const numberOfRows = epics.length;
+  const numberOfRows = capabilities.length;
   const gridRowForTaskOrder = `1 / ${2 + numberOfRows}`;
 
   return (
@@ -433,10 +435,10 @@ function TaskOrderDisplay({
         >
           {taskOrder.name}
         </div>
-        {epics.map((e, i) => (
-          <EpicDisplay
+        {capabilities.map((c, i) => (
+          <CapabilityDisplay
             key={i}
-            epic={e}
+            capability={c}
             index={i + 1}
             color={color}
             columnConfigs={columnConfigs}
@@ -448,14 +450,14 @@ function TaskOrderDisplay({
   );
 }
 
-function EpicDisplay({
-  epic,
+function CapabilityDisplay({
+  capability,
   index,
   color,
   columnConfigs,
   showAcrossColumns,
 }: {
-  epic: Epic;
+  capability: Capability;
   index: number;
   color: string;
   columnConfigs: ColumnConfig[];
@@ -464,8 +466,8 @@ function EpicDisplay({
   const gridRowIndex = index + 1;
   let gridRow = `${gridRowIndex} / ${gridRowIndex + 1}`;
 
-  const startDate = new Date(epic.plannedStart);
-  const endDate = new Date(epic.plannedEnd);
+  const startDate = new Date(capability.plannedStart);
+  const endDate = new Date(capability.plannedEnd);
 
   function isWithinDateRange(columnConfig: ColumnConfig) {
     if (!columnConfig.startDate || !columnConfig.endDate) {
@@ -476,10 +478,8 @@ function EpicDisplay({
     const columnEndDate = new Date(columnConfig.endDate);
 
     if (!showAcrossColumns) {
-      // When toggle is off, epic must fit entirely within the column
       return startDate >= columnStartDate && endDate <= columnEndDate;
     } else {
-      // When toggle is on, check for any overlap
       return (
         (startDate <= columnEndDate && endDate >= columnStartDate) ||
         (startDate >= columnStartDate && startDate <= columnEndDate) ||
@@ -493,7 +493,6 @@ function EpicDisplay({
     const col1EndDate = new Date(col1.endDate);
     const col2StartDate = new Date(col2.startDate);
 
-    // Check if the end date of col1 is the day before the start date of col2
     col1EndDate.setDate(col1EndDate.getDate() + 1);
     return col1EndDate.getTime() === col2StartDate.getTime();
   }
@@ -512,7 +511,6 @@ function EpicDisplay({
           break;
         }
       } else if (startColumn !== -1 && showAcrossColumns) {
-        // Check if this column is adjacent to the previous one
         if (
           i > 0 &&
           !areColumnsAdjacent(columnConfigs[i - 1], columnConfigs[i])
@@ -530,7 +528,7 @@ function EpicDisplay({
   }
 
   const gridColumn = getGridColumn(columnConfigs);
-  const stories: any = epic.stories;
+  const epics: any = capability.epics;
 
   if (gridColumn === "") {
     return <></>;
@@ -538,7 +536,7 @@ function EpicDisplay({
 
   return (
     <div
-      className={`rounded-md text-xs border px-4 py-1 whitespace-normal flex flex-col items-center justify-center text-center`}
+      className="rounded-md text-xs border px-4 py-1 whitespace-normal flex flex-col items-center justify-center text-center"
       style={{
         gridColumn: gridColumn,
         gridRow: gridRow,
@@ -547,14 +545,14 @@ function EpicDisplay({
     >
       <HoverCard>
         <HoverCardTrigger asChild>
-          <div className="text-white w-full ">{epic.name}</div>
+          <div className="text-white w-full ">{capability.name}</div>
         </HoverCardTrigger>
         <HoverCardContent className="w-96">
-          <div className="font-bold text-lg">{epic.name}</div>
+          <div className="font-bold text-lg">{capability.name}</div>
           <ul>
-            {stories.map((story: any, i: number) => (
+            {epics.map((epic: any, i: number) => (
               <li className="text-xs" key={i}>
-                {story?.name}
+                {epic?.name}
               </li>
             ))}
           </ul>
@@ -600,88 +598,93 @@ function MileStones() {
       ))}
     </div>
   );
-  function EmptyMilestone() {
-    return (
-      <div className="flex justify-center text-2xl z-50 w-full items-center select-none">
-        <TooltipProvider>
-          <Tooltip delayDuration={10}>
-            <TooltipTrigger>
-              <div className="opacity-0">oooo</div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <div>Click to add milestone</div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    );
-  }
-  function TestingMilestone() {
-    const circleChar = "\u25CF";
-    return (
-      <div className="flex justify-center text-2xl z-50 text-yellow-300 items-center select-none">
-        <TooltipProvider>
-          <Tooltip delayDuration={10}>
-            <TooltipTrigger>
-              <div>{circleChar}</div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <div>Testing Milestone</div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    );
-  }
-  function CapabilityDelivery() {
-    const diamondChar = "\u25C6";
-    return (
-      <div className="flex justify-center text-2xl z-50 text-orange-600 items-center select-none">
-        <TooltipProvider>
-          <Tooltip delayDuration={10}>
-            <TooltipTrigger>
-              <div>{diamondChar}</div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <div>Capability Delivery</div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    );
-  }
-  function SecurityMilestone() {
-    const triangleChar = "\u25B2";
-    return (
-      <div className="flex justify-center text-2xl z-50 text-gray-600 items-center select-none">
-        <TooltipProvider>
-          <Tooltip delayDuration={10}>
-            <TooltipTrigger>
-              <div>{triangleChar}</div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <div>Security Milestone</div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    );
-  }
-  function EPACommMilestone() {
-    const squareChar = "\u25A0";
-    return (
-      <div className="flex justify-center text-2xl z-50 text-green-600 items-center select-none">
-        <TooltipProvider>
-          <Tooltip delayDuration={10}>
-            <TooltipTrigger>
-              <div>{squareChar}</div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <div>EPA Comm Milestone</div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    );
-  }
+}
+
+function EmptyMilestone() {
+  return (
+    <div className="flex justify-center text-2xl z-50 w-full items-center select-none">
+      <TooltipProvider>
+        <Tooltip delayDuration={10}>
+          <TooltipTrigger>
+            <div className="opacity-0">oooo</div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div>Click to add milestone</div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}
+
+function TestingMilestone() {
+  const circleChar = "\u25CF";
+  return (
+    <div className="flex justify-center text-2xl z-50 text-yellow-300 items-center select-none">
+      <TooltipProvider>
+        <Tooltip delayDuration={10}>
+          <TooltipTrigger>
+            <div>{circleChar}</div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div>Testing Milestone</div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}
+
+function CapabilityDelivery() {
+  const diamondChar = "\u25C6";
+  return (
+    <div className="flex justify-center text-2xl z-50 text-orange-600 items-center select-none">
+      <TooltipProvider>
+        <Tooltip delayDuration={10}>
+          <TooltipTrigger>
+            <div>{diamondChar}</div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div>Capability Delivery</div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}
+
+function SecurityMilestone() {
+  const triangleChar = "\u25B2";
+  return (
+    <div className="flex justify-center text-2xl z-50 text-gray-600 items-center select-none">
+      <TooltipProvider>
+        <Tooltip delayDuration={10}>
+          <TooltipTrigger>
+            <div>{triangleChar}</div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div>Security Milestone</div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}
+
+function EPACommMilestone() {
+  const squareChar = "\u25A0";
+  return (
+    <div className="flex justify-center text-2xl z-50 text-green-600 items-center select-none">
+      <TooltipProvider>
+        <Tooltip delayDuration={10}>
+          <TooltipTrigger>
+            <div>{squareChar}</div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div>EPA Comm Milestone</div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
 }

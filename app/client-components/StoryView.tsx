@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Epic, TaskOrder } from "./data-manipulation";
+import { Story, TaskOrder, Epic } from "./data-manipulation";
 import domtoimage from "dom-to-image";
 import {
   HoverCard,
@@ -24,7 +24,11 @@ interface ColumnConfig {
   title: string;
 }
 
-export default function EpicsView({ taskOrders }: { taskOrders: TaskOrder[] }) {
+export default function StoriesView({
+  taskOrders,
+}: {
+  taskOrders: TaskOrder[];
+}) {
   const [numberOfColumns, setNumberOfColumns] = useState(8);
   const [columnConfigs, setColumnConfigs] = useState<ColumnConfig[]>(
     Array(numberOfColumns).fill({
@@ -56,7 +60,7 @@ export default function EpicsView({ taskOrders }: { taskOrders: TaskOrder[] }) {
       try {
         const dataUrl = await domtoimage.toPng(componentRef.current);
         const link = document.createElement("a");
-        link.download = "epics-screenshot.png";
+        link.download = "stories-screenshot.png";
         link.href = dataUrl;
         link.click();
       } catch (error) {
@@ -184,7 +188,7 @@ function Title() {
   const [title, setTitle] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const defaultTitle = "Epics View";
+  const defaultTitle = "Stories View";
 
   const handleTitleClick = () => {
     setIsEditing(true);
@@ -389,13 +393,12 @@ function TaskOrderDisplay({
   columnConfigs: ColumnConfig[];
   showAcrossColumns: boolean;
 }) {
-  const epics = taskOrder.portfolioEpics
-    ? taskOrder.portfolioEpics
-        .map((pe) => pe.capabilities.map((c) => c.epics))
-        .flat(2)
-    : [];
+  const stories = taskOrder.portfolioEpics
+    .flatMap((pe) => pe.capabilities)
+    .flatMap((c) => c.epics)
+    .flatMap((e) => e.stories);
 
-  if (epics.length === 0) {
+  if (stories.length === 0) {
     return <></>;
   }
 
@@ -406,7 +409,7 @@ function TaskOrderDisplay({
   }
   const color = getShadeOfPurple(index);
   const firstColumn = "1";
-  const numberOfRows = epics.length;
+  const numberOfRows = stories.length;
   const gridRowForTaskOrder = `1 / ${2 + numberOfRows}`;
 
   return (
@@ -433,10 +436,10 @@ function TaskOrderDisplay({
         >
           {taskOrder.name}
         </div>
-        {epics.map((e, i) => (
-          <EpicDisplay
+        {stories.map((story, i) => (
+          <StoryDisplay
             key={i}
-            epic={e}
+            story={story}
             index={i + 1}
             color={color}
             columnConfigs={columnConfigs}
@@ -448,14 +451,14 @@ function TaskOrderDisplay({
   );
 }
 
-function EpicDisplay({
-  epic,
+function StoryDisplay({
+  story,
   index,
   color,
   columnConfigs,
   showAcrossColumns,
 }: {
-  epic: Epic;
+  story: Story;
   index: number;
   color: string;
   columnConfigs: ColumnConfig[];
@@ -464,8 +467,8 @@ function EpicDisplay({
   const gridRowIndex = index + 1;
   let gridRow = `${gridRowIndex} / ${gridRowIndex + 1}`;
 
-  const startDate = new Date(epic.plannedStart);
-  const endDate = new Date(epic.plannedEnd);
+  const startDate = new Date(story.plannedStart);
+  const endDate = new Date(story.plannedEnd);
 
   function isWithinDateRange(columnConfig: ColumnConfig) {
     if (!columnConfig.startDate || !columnConfig.endDate) {
@@ -476,10 +479,8 @@ function EpicDisplay({
     const columnEndDate = new Date(columnConfig.endDate);
 
     if (!showAcrossColumns) {
-      // When toggle is off, epic must fit entirely within the column
       return startDate >= columnStartDate && endDate <= columnEndDate;
     } else {
-      // When toggle is on, check for any overlap
       return (
         (startDate <= columnEndDate && endDate >= columnStartDate) ||
         (startDate >= columnStartDate && startDate <= columnEndDate) ||
@@ -493,7 +494,6 @@ function EpicDisplay({
     const col1EndDate = new Date(col1.endDate);
     const col2StartDate = new Date(col2.startDate);
 
-    // Check if the end date of col1 is the day before the start date of col2
     col1EndDate.setDate(col1EndDate.getDate() + 1);
     return col1EndDate.getTime() === col2StartDate.getTime();
   }
@@ -512,7 +512,6 @@ function EpicDisplay({
           break;
         }
       } else if (startColumn !== -1 && showAcrossColumns) {
-        // Check if this column is adjacent to the previous one
         if (
           i > 0 &&
           !areColumnsAdjacent(columnConfigs[i - 1], columnConfigs[i])
@@ -530,7 +529,6 @@ function EpicDisplay({
   }
 
   const gridColumn = getGridColumn(columnConfigs);
-  const stories: any = epic.stories;
 
   if (gridColumn === "") {
     return <></>;
@@ -538,7 +536,7 @@ function EpicDisplay({
 
   return (
     <div
-      className={`rounded-md text-xs border px-4 py-1 whitespace-normal flex flex-col items-center justify-center text-center`}
+      className="rounded-md text-xs border px-4 py-1 whitespace-normal flex flex-col items-center justify-center text-center"
       style={{
         gridColumn: gridColumn,
         gridRow: gridRow,
@@ -547,17 +545,16 @@ function EpicDisplay({
     >
       <HoverCard>
         <HoverCardTrigger asChild>
-          <div className="text-white w-full ">{epic.name}</div>
+          <div className="text-white w-full ">{story.name}</div>
         </HoverCardTrigger>
         <HoverCardContent className="w-96">
-          <div className="font-bold text-lg">{epic.name}</div>
-          <ul>
-            {stories.map((story: any, i: number) => (
-              <li className="text-xs" key={i}>
-                {story?.name}
-              </li>
-            ))}
-          </ul>
+          <div className="font-bold text-lg">{story.name}</div>
+          <div className="text-sm">
+            <p>Type: {story.type}</p>
+            <p>Planned Start: {story.plannedStart}</p>
+            <p>Planned End: {story.plannedEnd}</p>
+            <p>Labels: {story.labels.join(", ")}</p>
+          </div>
         </HoverCardContent>
       </HoverCard>
       <MileStones />
@@ -568,12 +565,13 @@ function EpicDisplay({
 function MileStones() {
   const milestoneOptions = [
     "empty",
-    "Capability Delivery",
+    "Story Completion",
     "Testing Milestone",
-    "Security Milestone",
-    "EPA Comm Milestone",
+    "Review Milestone",
+    "Deployment Milestone",
   ];
   const [milestones, setMilestones] = useState(["empty", "empty", "empty"]);
+
   async function handleClick(index: number) {
     const newMilestones = [...milestones];
     newMilestones[index] =
@@ -583,6 +581,7 @@ function MileStones() {
       ];
     setMilestones(newMilestones);
   }
+
   return (
     <div className="w-full flex flex-row justify-between h-1.5 rounded-md">
       {milestones.map((milestone, i) => (
@@ -593,13 +592,14 @@ function MileStones() {
         >
           {milestone === "empty" && <EmptyMilestone />}
           {milestone === "Testing Milestone" && <TestingMilestone />}
-          {milestone === "Capability Delivery" && <CapabilityDelivery />}
-          {milestone === "Security Milestone" && <SecurityMilestone />}
-          {milestone === "EPA Comm Milestone" && <EPACommMilestone />}
+          {milestone === "Story Completion" && <StoryCompletion />}
+          {milestone === "Review Milestone" && <ReviewMilestone />}
+          {milestone === "Deployment Milestone" && <DeploymentMilestone />}
         </div>
       ))}
     </div>
   );
+
   function EmptyMilestone() {
     return (
       <div className="flex justify-center text-2xl z-50 w-full items-center select-none">
@@ -616,6 +616,7 @@ function MileStones() {
       </div>
     );
   }
+
   function TestingMilestone() {
     const circleChar = "\u25CF";
     return (
@@ -633,7 +634,8 @@ function MileStones() {
       </div>
     );
   }
-  function CapabilityDelivery() {
+
+  function StoryCompletion() {
     const diamondChar = "\u25C6";
     return (
       <div className="flex justify-center text-2xl z-50 text-orange-600 items-center select-none">
@@ -643,14 +645,15 @@ function MileStones() {
               <div>{diamondChar}</div>
             </TooltipTrigger>
             <TooltipContent>
-              <div>Capability Delivery</div>
+              <div>Story Completion</div>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
     );
   }
-  function SecurityMilestone() {
+
+  function ReviewMilestone() {
     const triangleChar = "\u25B2";
     return (
       <div className="flex justify-center text-2xl z-50 text-gray-600 items-center select-none">
@@ -660,14 +663,15 @@ function MileStones() {
               <div>{triangleChar}</div>
             </TooltipTrigger>
             <TooltipContent>
-              <div>Security Milestone</div>
+              <div>Review Milestone</div>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
     );
   }
-  function EPACommMilestone() {
+
+  function DeploymentMilestone() {
     const squareChar = "\u25A0";
     return (
       <div className="flex justify-center text-2xl z-50 text-green-600 items-center select-none">
@@ -677,7 +681,7 @@ function MileStones() {
               <div>{squareChar}</div>
             </TooltipTrigger>
             <TooltipContent>
-              <div>EPA Comm Milestone</div>
+              <div>Deployment Milestone</div>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

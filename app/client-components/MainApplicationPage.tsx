@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { parseXLSFile, TaskOrder } from "./data-manipulation";
-import Roadmap from "./Roadmap";
 import { ModeToggle } from "@/components/ModeToggleButton";
-
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
+import PortfolioEpicsView from "./PortfolioEpicsView";
+import PortfolioEpicsView_labels from "./PortfolioEpicView_labels";
 import EpicsView from "./EpicsView";
-
+import StoryView from "./StoryView";
+import StoryView_labels from "./StoryView_labels";
+import CustomView from "./CustomView";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import CapabilitiesView from "./CapabilitiesView";
 
 export default function MainApplicationPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -21,7 +26,24 @@ export default function MainApplicationPage() {
       if (selectedFile) {
         const results = await parseXLSFile(selectedFile);
         console.log(results);
-        setTableData(results);
+        //now look through the results and convert them to TaskOrder objects
+        let taskOrders: TaskOrder[] = results;
+        //now remove the task orders that do not have any portfolio epics or capabilities
+        taskOrders = taskOrders.filter(
+          (taskOrder) =>
+            taskOrder.portfolioEpics &&
+            taskOrder.portfolioEpics.length > 0 &&
+            taskOrder.portfolioEpics.some(
+              (portfolioEpic) =>
+                portfolioEpic.capabilities &&
+                portfolioEpic.capabilities.length > 0 &&
+                portfolioEpic.capabilities.some(
+                  (capability) =>
+                    capability.epics && capability.epics.length > 0
+                )
+            )
+        );
+        setTableData(taskOrders);
       }
     }
     fetchAndConvertData();
@@ -35,72 +57,91 @@ export default function MainApplicationPage() {
   return (
     <div className="w-full h-full m-5">
       <Tabs defaultValue="file" className="w-full">
-        <TabsList className="flex flex-row justify-between">
-          <div className="flex gap-1">
+        <div className="flex flex-row justify-between mx-5">
+          <TabsList className="flex bg-gray-300 text-black gap-1 rounded-md">
             <TabsTrigger value="file">File</TabsTrigger>
-            <TabsTrigger disabled={tableData.length === 0} value="roadmap">Roadmap</TabsTrigger>
-            <TabsTrigger disabled={tableData.length === 0} value="epic">Epics View</TabsTrigger>
-          </div>
+            <TabsTrigger
+              disabled={tableData.length === 0}
+              value="portfolio_epics"
+            >
+              Portfolio Epics View
+            </TabsTrigger>
+            <TabsTrigger disabled={tableData.length === 0} value="capabilities">
+              Capabilities View
+            </TabsTrigger>
+            <TabsTrigger disabled={tableData.length === 0} value="epics">
+              Epics View
+            </TabsTrigger>
+            <TabsTrigger disabled={tableData.length === 0} value="stories">
+              Story View
+            </TabsTrigger>
+            <TabsTrigger disabled={tableData.length === 0} value="custom_view">
+              Custom View
+            </TabsTrigger>
+            <TabsTrigger
+              disabled={tableData.length === 0}
+              value="portfolio_epics_labels"
+            >
+              Portfolio Epics View (Labels)
+            </TabsTrigger>
+            <TabsTrigger
+              disabled={tableData.length === 0}
+              value="stories_labels"
+            >
+              Story View (Labels)
+            </TabsTrigger>
+            {/* <TabsTrigger disabled={tableData.length === 0} value="debug">Debug</TabsTrigger> */}
+          </TabsList>
           <ModeToggle />
-        </TabsList>
+        </div>
+
         <TabsContent value="file" className="p-4">
           <label htmlFor="fileInput" className="block">
-            <span className="sr-only">Choose file</span>
-            <input
+            {/* <span className="sr-only">Choose file</span> */}
+            <Input
               type="file"
               id="fileInput"
               onChange={handleChange}
               accept=".xls,.xlsx"
-              className="block w-full mb-4 mx-2 text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-gray-300"
+              className="w-1/4 my-2 cursor-pointer"
             />
           </label>
-          <button
-            className="px-4 py-2 mb-4 text-sm font-medium text-white bg-purple-500 rounded-md hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+          <Button
+            className="px-4 py-2 mb-4 text-sm font-medium text-white bg-purple-700 rounded-md hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
             onClick={handleResetFileSelection}
           >
             Reset
-          </button>
+          </Button>
         </TabsContent>
-        <TabsContent value="roadmap" className="p-4">
+        <TabsContent value="portfolio_epics" className="p-4">
+          <PortfolioEpicsView taskOrders={tableData} />
+        </TabsContent>
+        <TabsContent value="capabilities" className="p-4">
           {tableData.length === 0 ? (
             <div className="mx-4">No data</div>
           ) : (
-            <Roadmap taskOrders={tableData} />
+            <CapabilitiesView taskOrders={tableData} />
           )}
         </TabsContent>
-        <TabsContent value="epic" className="p-4">
+        <TabsContent value="epics" className="p-4">
           <EpicsView taskOrders={tableData} />
         </TabsContent>
+        <TabsContent value="stories" className="p-4">
+          <StoryView taskOrders={tableData} />
+        </TabsContent>
+        <TabsContent value="custom_view" className="p-4">
+          <CustomView taskOrders={tableData} />
+        </TabsContent>
+        <TabsContent value="portfolio_epics_labels" className="p-4">
+          <PortfolioEpicsView_labels taskOrders={tableData} />
+        </TabsContent>
+        <TabsContent value="stories_labels" className="p-4">
+          <StoryView_labels taskOrders={tableData} />
+        </TabsContent>
+        {/* <TabsContent value="debug" className="p-4">
+          <pre>{JSON.stringify(tableData, null, 2)}</pre>
+        </TabsContent> */}
       </Tabs>
-    </div>
-  )
-
-  return (
-    <div className="w-full h-full m-5">
-      <div className="w-full flex justify-between">
-        <label htmlFor="fileInput" className="block">
-          <span className="sr-only">Choose file</span>
-          <input
-            type="file"
-            id="fileInput"
-            onChange={handleChange}
-            accept=".xls,.xlsx"
-            className="block w-full mb-4 mx-2 text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-gray-300"
-          />
-        </label>
-        <button
-          className="px-4 py-2 mb-4 text-sm font-medium text-white bg-purple-500 rounded-md hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-          onClick={handleResetFileSelection}
-        >
-          Reset
-        </button>
-        <ModeToggle />
-      </div>
-      {tableData.length === 0 ? (
-        <div className="mx-4">No data</div>
-      ) : (
-        <Roadmap taskOrders={tableData} />
-      )}
     </div>
   );
 }
