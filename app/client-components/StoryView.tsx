@@ -36,6 +36,9 @@ export default function StoriesView({
       title: "",
     })
   );
+  const [selectedTaskOrder, setSelectedTaskOrder] = useState<TaskOrder | null>(
+    null
+  );
 
   useEffect(() => {
     setColumnConfigs(
@@ -97,10 +100,41 @@ export default function StoriesView({
     );
   }
 
+  function TaskOrderDropdown() {
+    return (
+      <div className="flex items-center ml-4">
+        <label htmlFor="task-order-dropdown" className="mr-2 mx-2">
+          Select Task Order:
+        </label>
+        <select
+          id="task-order-dropdown"
+          className="px-2 py-1 border rounded"
+          value={selectedTaskOrder?.name || ""}
+          onChange={(e) => {
+            const selectedTaskOrder = taskOrders.find(
+              (to) => to.name === e.target.value
+            );
+            setSelectedTaskOrder(selectedTaskOrder || null);
+          }}
+        >
+          <option value="">All Task Orders</option>
+          {taskOrders.map((to) => (
+            <option key={to.name} value={to.name}>
+              {to.name}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full flex flex-col">
       <div className="flex justify-between items-center">
-        <ColumnSelector />
+        <div className="flex items-center">
+          <ColumnSelector />
+          <TaskOrderDropdown />
+        </div>
         <Button onClick={handleScreenshot}>Save as Image</Button>
       </div>
       <div ref={componentRef}>
@@ -109,16 +143,22 @@ export default function StoriesView({
           columnConfigs={columnConfigs}
           setColumnConfigs={setColumnConfigs}
         />
-        {taskOrders
-          ? taskOrders.map((to, index) => (
-              <TaskOrderDisplay
-                key={index}
-                taskOrder={to}
-                index={index}
-                columnConfigs={columnConfigs}
-              />
-            ))
-          : null}
+        {selectedTaskOrder ? (
+          <TaskOrderDisplay
+            taskOrder={selectedTaskOrder}
+            index={0}
+            columnConfigs={columnConfigs}
+          />
+        ) : (
+          taskOrders.map((to, index) => (
+            <TaskOrderDisplay
+              key={index}
+              taskOrder={to}
+              index={index}
+              columnConfigs={columnConfigs}
+            />
+          ))
+        )}
       </div>
     </div>
   );
