@@ -59,7 +59,6 @@ export default function StoriesView({
     if (componentRef.current) {
       try {
         const dataUrl = await domtoimage.toPng(componentRef.current);
-
         const link = document.createElement("a");
         link.download = "stories-screenshot.png";
         link.href = dataUrl;
@@ -315,60 +314,70 @@ function HeaderRow({
   }, [editingIndex]);
 
   return (
-    <div className="h-8 flex flex-row">
-      <div className="flex-1"></div>
-      {columnConfigs.map((config, index) => (
+    <div className="relative">
+      <div className="h-8 flex flex-row relative z-50">
+        <div className="flex-1"></div>
+        {columnConfigs.map((config, index) => (
+          <div
+            key={index}
+            className={`flex-1 flex flex-col text-white text-center rounded-md relative ${
+              selectedColumnIndex === index ? "border-2 border-white" : ""
+            }`}
+            style={{ backgroundColor: getBackgroundColor(index) }}
+            onClick={() => setSelectedColumnIndex(index)}
+          >
+            {editingIndex === index ? (
+              <input
+                ref={inputRef}
+                type="text"
+                value={config.title}
+                onChange={(e) => handleHeaderChange(e, index)}
+                onBlur={handleHeaderBlur}
+                className="text-white bg-transparent focus:outline-none text-center"
+              />
+            ) : (
+              <div onDoubleClick={() => handleHeaderDoubleClick(index)}>
+                {config.title || `Column ${index + 1}`}
+              </div>
+            )}
+            {selectedColumnIndex === index && (
+              <div
+                ref={dateRangeRef}
+                className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 text-black dark:text-white p-4 rounded shadow z-50"
+              >
+                <div className="mb-4">
+                  <label className="block mb-1">Start Date:</label>
+                  <DatePicker
+                    selected={config.startDate}
+                    onChange={(date: Date | null) =>
+                      handleDateChange(date, index, "start")
+                    }
+                    className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 w-full text-black dark:text-white bg-white dark:bg-gray-800"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1">End Date:</label>
+                  <DatePicker
+                    selected={config.endDate}
+                    onChange={(date: Date | null) =>
+                      handleDateChange(date, index, "end")
+                    }
+                    className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 w-full text-black dark:text-white bg-white dark:bg-gray-800"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      {selectedColumnIndex !== null && (
         <div
-          key={index}
-          className={`flex-1 flex flex-col text-white text-center rounded-md relative ${
-            selectedColumnIndex === index ? "border-2 border-white" : ""
-          }`}
-          style={{ backgroundColor: getBackgroundColor(index) }}
-          onClick={() => setSelectedColumnIndex(index)}
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setSelectedColumnIndex(null)}
         >
-          {editingIndex === index ? (
-            <input
-              ref={inputRef}
-              type="text"
-              value={config.title}
-              onChange={(e) => handleHeaderChange(e, index)}
-              onBlur={handleHeaderBlur}
-              className="text-white bg-transparent focus:outline-none text-center"
-            />
-          ) : (
-            <div onDoubleClick={() => handleHeaderDoubleClick(index)}>
-              {config.title || `Column ${index + 1}`}
-            </div>
-          )}
-          {selectedColumnIndex === index && (
-            <div
-              ref={dateRangeRef}
-              className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 text-black dark:text-white p-4 rounded shadow"
-            >
-              <div className="mb-4">
-                <label className="block mb-1">Start Date:</label>
-                <DatePicker
-                  selected={config.startDate}
-                  onChange={(date: Date | null) =>
-                    handleDateChange(date, index, "start")
-                  }
-                  className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 w-full text-black dark:text-white bg-white dark:bg-gray-800"
-                />
-              </div>
-              <div>
-                <label className="block mb-1">End Date:</label>
-                <DatePicker
-                  selected={config.endDate}
-                  onChange={(date: Date | null) =>
-                    handleDateChange(date, index, "end")
-                  }
-                  className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 w-full text-black dark:text-white bg-white dark:bg-gray-800"
-                />
-              </div>
-            </div>
-          )}
+          <div className="absolute inset-x-0 top-0 h-8 bg-transparent pointer-events-none" />
         </div>
-      ))}
+      )}
     </div>
   );
 }
@@ -469,15 +478,24 @@ function StoryDisplay({
     const columnStartDate = new Date(columnConfig.startDate);
     const columnEndDate = new Date(columnConfig.endDate);
 
-    if (showAcrossColumns) {
-      return (
-        (startDate >= columnStartDate && startDate <= columnEndDate) ||
-        (endDate >= columnStartDate && endDate <= columnEndDate) ||
-        (startDate <= columnStartDate && endDate >= columnEndDate)
-      );
-    } else {
+    if (!showAcrossColumns) {
       return startDate >= columnStartDate && endDate <= columnEndDate;
+    } else {
+      return (
+        (startDate <= columnEndDate && endDate >= columnStartDate) ||
+        (startDate >= columnStartDate && startDate <= columnEndDate) ||
+        (endDate >= columnStartDate && endDate <= columnEndDate)
+      );
     }
+  }
+
+  function areColumnsAdjacent(col1: ColumnConfig, col2: ColumnConfig): boolean {
+    if (!col1.endDate || !col2.startDate) return false;
+    const col1EndDate = new Date(col1.endDate);
+    const col2StartDate = new Date(col2.startDate);
+
+    col1EndDate.setDate(col1EndDate.getDate() + 1);
+    return col1EndDate.getTime() === col2StartDate.getTime();
   }
 
   function getGridColumn(columnConfigs: ColumnConfig[]) {
@@ -494,7 +512,12 @@ function StoryDisplay({
           break;
         }
       } else if (startColumn !== -1 && showAcrossColumns) {
-        break;
+        if (
+          i > 0 &&
+          !areColumnsAdjacent(columnConfigs[i - 1], columnConfigs[i])
+        ) {
+          break;
+        }
       }
     }
 
@@ -513,7 +536,7 @@ function StoryDisplay({
 
   return (
     <div
-      className={`rounded-md text-xs border px-4 py-1 whitespace-normal flex flex-col items-center justify-center text-center`}
+      className="rounded-md text-xs border px-4 py-1 whitespace-normal flex flex-col items-center justify-center text-center"
       style={{
         gridColumn: gridColumn,
         gridRow: gridRow,
@@ -547,7 +570,6 @@ function MileStones() {
     "Review Milestone",
     "Deployment Milestone",
   ];
-
   const [milestones, setMilestones] = useState(["empty", "empty", "empty"]);
 
   async function handleClick(index: number) {
@@ -571,7 +593,6 @@ function MileStones() {
           {milestone === "empty" && <EmptyMilestone />}
           {milestone === "Testing Milestone" && <TestingMilestone />}
           {milestone === "Story Completion" && <StoryCompletion />}
-          {milestone === "Review Milestone" && <ReviewMilestone />}
           {milestone === "Review Milestone" && <ReviewMilestone />}
           {milestone === "Deployment Milestone" && <DeploymentMilestone />}
         </div>
@@ -613,6 +634,7 @@ function MileStones() {
       </div>
     );
   }
+
   function StoryCompletion() {
     const diamondChar = "\u25C6";
     return (
@@ -630,6 +652,7 @@ function MileStones() {
       </div>
     );
   }
+
   function ReviewMilestone() {
     const triangleChar = "\u25B2";
     return (
@@ -647,6 +670,7 @@ function MileStones() {
       </div>
     );
   }
+
   function DeploymentMilestone() {
     const squareChar = "\u25A0";
     return (
