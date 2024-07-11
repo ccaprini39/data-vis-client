@@ -36,6 +36,9 @@ export default function PortfolioEpicsView({
       title: "",
     })
   );
+  const [selectedTaskOrder, setSelectedTaskOrder] = useState<TaskOrder | null>(
+    null
+  );
 
   useEffect(() => {
     setColumnConfigs(
@@ -54,7 +57,6 @@ export default function PortfolioEpicsView({
     if (componentRef.current) {
       try {
         const dataUrl = await domtoimage.toPng(componentRef.current);
-
         const link = document.createElement("a");
         link.download = "portfolio-epics-screenshot.png";
         link.href = dataUrl;
@@ -76,7 +78,7 @@ export default function PortfolioEpicsView({
 
     return (
       <div className="flex items-center">
-        <label htmlFor="columns-input" className="mr-2 mx-2">
+        <label htmlFor="columns-input" className="mr-2">
           Number of Columns:
         </label>
         <button
@@ -97,10 +99,41 @@ export default function PortfolioEpicsView({
     );
   }
 
+  function TaskOrderDropdown() {
+    return (
+      <div className="flex items-center ml-4">
+        <label htmlFor="task-order-dropdown" className="mr-2">
+          Select Task Order:
+        </label>
+        <select
+          id="task-order-dropdown"
+          className="px-2 py-1 border rounded"
+          value={selectedTaskOrder?.name || ""}
+          onChange={(e) => {
+            const selectedTaskOrder = taskOrders.find(
+              (to) => to.name === e.target.value
+            );
+            setSelectedTaskOrder(selectedTaskOrder || null);
+          }}
+        >
+          <option value="">All Task Orders</option>
+          {taskOrders.map((to) => (
+            <option key={to.name} value={to.name}>
+              {to.name}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full flex flex-col">
       <div className="flex justify-between items-center">
-        <ColumnSelector />
+        <div className="flex items-center">
+          <ColumnSelector />
+          <TaskOrderDropdown />
+        </div>
         <Button onClick={handleScreenshot}>Save as Image</Button>
       </div>
       <div ref={componentRef}>
@@ -109,16 +142,22 @@ export default function PortfolioEpicsView({
           columnConfigs={columnConfigs}
           setColumnConfigs={setColumnConfigs}
         />
-        {taskOrders
-          ? taskOrders.map((to, index) => (
-              <TaskOrderDisplay
-                key={index}
-                taskOrder={to}
-                index={index}
-                columnConfigs={columnConfigs}
-              />
-            ))
-          : null}
+        {selectedTaskOrder ? (
+          <TaskOrderDisplay
+            taskOrder={selectedTaskOrder}
+            index={0}
+            columnConfigs={columnConfigs}
+          />
+        ) : (
+          taskOrders.map((to, index) => (
+            <TaskOrderDisplay
+              key={index}
+              taskOrder={to}
+              index={index}
+              columnConfigs={columnConfigs}
+            />
+          ))
+        )}
       </div>
     </div>
   );
@@ -328,12 +367,11 @@ function TaskOrderDisplay({
     return <></>;
   }
 
-  function getShadeOfPurple(index: number) {
-    let colorIndex = index % 4;
-    const shadesOfPurple = ["#4C1D95", "#000080", "#6022B1", "#00008B"];
-    return shadesOfPurple[colorIndex];
+  function getBackgroundColor(index: number) {
+    const colors = ["#4C1D95", "#000080", "#6022B1", "#00008B"];
+    return colors[index % 4];
   }
-  const color = getShadeOfPurple(index);
+  const color = getBackgroundColor(index);
   const firstColumn = "1";
   const numberOfRows = portfolioEpics.length;
   const gridRowForTaskOrder = `1 / ${2 + numberOfRows}`;
@@ -366,7 +404,7 @@ function TaskOrderDisplay({
           <PortfolioEpicDisplay
             key={i}
             portfolioEpic={pe}
-            index={i + 1}
+            index={index}
             color={color}
             columnConfigs={columnConfigs}
           />
@@ -457,9 +495,7 @@ function MileStones() {
     "Security Milestone",
     "EPA Comm Milestone",
   ];
-
   const [milestones, setMilestones] = useState(["empty", "empty", "empty"]);
-
   async function handleClick(index: number) {
     const newMilestones = [...milestones];
     newMilestones[index] =
@@ -469,7 +505,6 @@ function MileStones() {
       ];
     setMilestones(newMilestones);
   }
-
   return (
     <div className="w-full flex flex-row justify-between h-1.5 rounded-md">
       {milestones.map((milestone, i) => (
@@ -480,7 +515,6 @@ function MileStones() {
         >
           {milestone === "empty" && <EmptyMilestone />}
           {milestone === "Testing Milestone" && <TestingMilestone />}
-          {milestone === "Testing Milestone" && <TestingMilestone />}
           {milestone === "Portfolio Epic Delivery" && <PortfolioEpicDelivery />}
           {milestone === "Security Milestone" && <SecurityMilestone />}
           {milestone === "EPA Comm Milestone" && <EPACommMilestone />}
@@ -488,7 +522,6 @@ function MileStones() {
       ))}
     </div>
   );
-
   function EmptyMilestone() {
     return (
       <div className="flex justify-center text-2xl z-50 w-full items-center select-none">
@@ -505,7 +538,6 @@ function MileStones() {
       </div>
     );
   }
-
   function TestingMilestone() {
     const circleChar = "\u25CF";
     return (
