@@ -16,6 +16,7 @@ import "react-tooltip/dist/react-tooltip.css";
 import { Button } from "@/components/ui/button";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { Switch } from "@/components/ui/switch";
 
 interface ColumnConfig {
   startDate: Date | null;
@@ -39,6 +40,7 @@ export default function StoriesView({
   const [selectedTaskOrder, setSelectedTaskOrder] = useState<TaskOrder | null>(
     null
   );
+  const [showAcrossColumns, setShowAcrossColumns] = useState(true);
 
   useEffect(() => {
     setColumnConfigs(
@@ -128,12 +130,28 @@ export default function StoriesView({
     );
   }
 
+  function ShowAcrossColumnsToggle() {
+    return (
+      <div className="flex items-center ml-4">
+        <label htmlFor="show-across-columns" className="mr-2">
+          Show Across Columns:
+        </label>
+        <Switch
+          id="show-across-columns"
+          checked={showAcrossColumns}
+          onCheckedChange={setShowAcrossColumns}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full flex flex-col">
       <div className="flex justify-between items-center">
         <div className="flex items-center">
           <ColumnSelector />
           <TaskOrderDropdown />
+          <ShowAcrossColumnsToggle />
         </div>
         <Button onClick={handleScreenshot}>Save as Image</Button>
       </div>
@@ -148,6 +166,7 @@ export default function StoriesView({
             taskOrder={selectedTaskOrder}
             index={0}
             columnConfigs={columnConfigs}
+            showAcrossColumns={showAcrossColumns}
           />
         ) : (
           taskOrders.map((to, index) => (
@@ -156,6 +175,7 @@ export default function StoriesView({
               taskOrder={to}
               index={index}
               columnConfigs={columnConfigs}
+              showAcrossColumns={showAcrossColumns}
             />
           ))
         )}
@@ -357,10 +377,12 @@ function TaskOrderDisplay({
   taskOrder,
   index,
   columnConfigs,
+  showAcrossColumns,
 }: {
   taskOrder: TaskOrder;
   index: number;
   columnConfigs: ColumnConfig[];
+  showAcrossColumns: boolean;
 }) {
   const stories = taskOrder.portfolioEpics
     .flatMap((pe) => pe.capabilities)
@@ -412,6 +434,7 @@ function TaskOrderDisplay({
             index={i + 1}
             color={color}
             columnConfigs={columnConfigs}
+            showAcrossColumns={showAcrossColumns}
           />
         ))}
       </div>
@@ -424,11 +447,13 @@ function StoryDisplay({
   index,
   color,
   columnConfigs,
+  showAcrossColumns,
 }: {
   story: Story;
   index: number;
   color: string;
   columnConfigs: ColumnConfig[];
+  showAcrossColumns: boolean;
 }) {
   const gridRowIndex = index + 1;
   let gridRow = `${gridRowIndex} / ${gridRowIndex + 1}`;
@@ -444,16 +469,40 @@ function StoryDisplay({
     const columnStartDate = new Date(columnConfig.startDate);
     const columnEndDate = new Date(columnConfig.endDate);
 
-    return startDate >= columnStartDate && endDate <= columnEndDate;
+    if (showAcrossColumns) {
+      return (
+        (startDate >= columnStartDate && startDate <= columnEndDate) ||
+        (endDate >= columnStartDate && endDate <= columnEndDate) ||
+        (startDate <= columnStartDate && endDate >= columnEndDate)
+      );
+    } else {
+      return startDate >= columnStartDate && endDate <= columnEndDate;
+    }
   }
 
   function getGridColumn(columnConfigs: ColumnConfig[]) {
+    let startColumn = -1;
+    let endColumn = -1;
+
     for (let i = 0; i < columnConfigs.length; i++) {
       if (isWithinDateRange(columnConfigs[i])) {
-        return `${i + 2} / ${i + 3}`;
+        if (startColumn === -1) {
+          startColumn = i;
+        }
+        endColumn = i;
+        if (!showAcrossColumns) {
+          break;
+        }
+      } else if (startColumn !== -1 && showAcrossColumns) {
+        break;
       }
     }
-    return "";
+
+    if (startColumn === -1) {
+      return "";
+    }
+
+    return `${startColumn + 2} / ${endColumn + 3}`;
   }
 
   const gridColumn = getGridColumn(columnConfigs);
