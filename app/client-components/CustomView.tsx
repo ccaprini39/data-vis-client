@@ -22,6 +22,7 @@ import "react-tooltip/dist/react-tooltip.css";
 import { Button } from "@/components/ui/button";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { Switch } from "@/components/ui/switch";
 
 interface ColumnConfig {
   startDate: Date | null;
@@ -53,7 +54,6 @@ export default function CustomView({ taskOrders }: CustomViewProps) {
     })
   );
 
-  // Temporary state (used for dropdown selections)
   const [tempTaskOrder, setTempTaskOrder] = useState<TaskOrder | null>(null);
   const [tempPortfolioEpic, setTempPortfolioEpic] =
     useState<PortfolioEpic | null>(null);
@@ -68,6 +68,7 @@ export default function CustomView({ taskOrders }: CustomViewProps) {
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(
     null
   );
+  const [showAcrossColumns, setShowAcrossColumns] = useState(true);
 
   const componentRef = useRef<HTMLDivElement>(null);
 
@@ -144,6 +145,21 @@ export default function CustomView({ taskOrders }: CustomViewProps) {
     );
   }
 
+  function ShowAcrossColumnsToggle() {
+    return (
+      <div className="flex items-center ml-4">
+        <label htmlFor="show-across-columns" className="mr-2">
+          Show Across Columns:
+        </label>
+        <Switch
+          id="show-across-columns"
+          checked={showAcrossColumns}
+          onCheckedChange={setShowAcrossColumns}
+        />
+      </div>
+    );
+  }
+
   function SelectionDropdowns() {
     const dropdownClasses =
       "border px-2 py-1 rounded w-48 truncate text-ellipsis";
@@ -170,7 +186,6 @@ export default function CustomView({ taskOrders }: CustomViewProps) {
           setSelectedSections((prevSections) => [...prevSections, newSection]);
         }
 
-        // Reset temp selections and selectedSectionId
         resetTempSelections();
       }
     };
@@ -309,7 +324,10 @@ export default function CustomView({ taskOrders }: CustomViewProps) {
   return (
     <div className="w-full h-full flex flex-col">
       <div className="flex justify-between items-center mb-4">
-        <ColumnSelector />
+        <div className="flex items-center">
+          <ColumnSelector />
+          <ShowAcrossColumnsToggle />
+        </div>
         <Button onClick={handleScreenshot}>Save as Image</Button>
       </div>
       <div className="flex flex-row items-center space-x-4 mb-4 flex-wrap">
@@ -332,6 +350,7 @@ export default function CustomView({ taskOrders }: CustomViewProps) {
               story={section.story}
               displayLevel={section.displayLevel}
               columnConfigs={columnConfigs}
+              showAcrossColumns={showAcrossColumns}
             />
           ))}
         </div>
@@ -471,60 +490,70 @@ function HeaderRow({
   }, [editingIndex]);
 
   return (
-    <div className="h-8 flex flex-row">
-      <div className="flex-1"></div>
-      {columnConfigs.map((config, index) => (
+    <div className="relative">
+      <div className="h-8 flex flex-row relative z-50">
+        <div className="flex-1"></div>
+        {columnConfigs.map((config, index) => (
+          <div
+            key={index}
+            className={`flex-1 flex flex-col text-white text-center rounded-md relative ${
+              selectedColumnIndex === index ? "border-2 border-white" : ""
+            }`}
+            style={{ backgroundColor: getBackgroundColor(index) }}
+            onClick={() => setSelectedColumnIndex(index)}
+          >
+            {editingIndex === index ? (
+              <input
+                ref={inputRef}
+                type="text"
+                value={config.title}
+                onChange={(e) => handleHeaderChange(e, index)}
+                onBlur={handleHeaderBlur}
+                className="text-white bg-transparent focus:outline-none text-center"
+              />
+            ) : (
+              <div onDoubleClick={() => handleHeaderDoubleClick(index)}>
+                {config.title || `Column ${index + 1}`}
+              </div>
+            )}
+            {selectedColumnIndex === index && (
+              <div
+                ref={dateRangeRef}
+                className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 text-black dark:text-white p-4 rounded shadow z-50"
+              >
+                <div className="mb-4">
+                  <label className="block mb-1">Start Date:</label>
+                  <DatePicker
+                    selected={config.startDate}
+                    onChange={(date: Date | null) =>
+                      handleDateChange(date, index, "start")
+                    }
+                    className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 w-full text-black dark:text-white bg-white dark:bg-gray-800"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1">End Date:</label>
+                  <DatePicker
+                    selected={config.endDate}
+                    onChange={(date: Date | null) =>
+                      handleDateChange(date, index, "end")
+                    }
+                    className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 w-full text-black dark:text-white bg-white dark:bg-gray-800"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      {selectedColumnIndex !== null && (
         <div
-          key={index}
-          className={`flex-1 flex flex-col text-white text-center rounded-md relative ${
-            selectedColumnIndex === index ? "border-2 border-white" : ""
-          }`}
-          style={{ backgroundColor: getBackgroundColor(index) }}
-          onClick={() => setSelectedColumnIndex(index)}
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setSelectedColumnIndex(null)}
         >
-          {editingIndex === index ? (
-            <input
-              ref={inputRef}
-              type="text"
-              value={config.title}
-              onChange={(e) => handleHeaderChange(e, index)}
-              onBlur={handleHeaderBlur}
-              className="text-white bg-transparent focus:outline-none text-center"
-            />
-          ) : (
-            <div onDoubleClick={() => handleHeaderDoubleClick(index)}>
-              {config.title || `Column ${index + 1}`}
-            </div>
-          )}
-          {selectedColumnIndex === index && (
-            <div
-              ref={dateRangeRef}
-              className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 text-black dark:text-white p-4 rounded shadow"
-            >
-              <div className="mb-4">
-                <label className="block mb-1">Start Date:</label>
-                <DatePicker
-                  selected={config.startDate}
-                  onChange={(date: Date | null) =>
-                    handleDateChange(date, index, "start")
-                  }
-                  className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 w-full text-black dark:text-white bg-white dark:bg-gray-800"
-                />
-              </div>
-              <div>
-                <label className="block mb-1">End Date:</label>
-                <DatePicker
-                  selected={config.endDate}
-                  onChange={(date: Date | null) =>
-                    handleDateChange(date, index, "end")
-                  }
-                  className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 w-full text-black dark:text-white bg-white dark:bg-gray-800"
-                />
-              </div>
-            </div>
-          )}
+          <div className="absolute inset-x-0 top-0 h-8 bg-transparent pointer-events-none" />
         </div>
-      ))}
+      )}
     </div>
   );
 }
@@ -537,6 +566,7 @@ function ChartDisplay({
   story,
   displayLevel,
   columnConfigs,
+  showAcrossColumns,
 }: {
   taskOrder: TaskOrder;
   portfolioEpic: PortfolioEpic | null;
@@ -545,6 +575,7 @@ function ChartDisplay({
   story: Story | null;
   displayLevel: "taskOrder" | "portfolioEpic" | "capability" | "epic" | "story";
   columnConfigs: ColumnConfig[];
+  showAcrossColumns: boolean;
 }) {
   function getShadeOfPurple(index: number) {
     let colorIndex = index % 4;
@@ -625,6 +656,7 @@ function ChartDisplay({
             color={color}
             columnConfigs={columnConfigs}
             displayLevel={displayLevel}
+            showAcrossColumns={showAcrossColumns}
           />
         ))}
       </div>
@@ -638,12 +670,14 @@ function ItemDisplay({
   color,
   columnConfigs,
   displayLevel,
+  showAcrossColumns,
 }: {
   item: any;
   index: number;
   color: string;
   columnConfigs: ColumnConfig[];
   displayLevel: "taskOrder" | "portfolioEpic" | "capability" | "epic" | "story";
+  showAcrossColumns: boolean;
 }) {
   const gridRowIndex = index + 1;
   let gridRow = `${gridRowIndex} / ${gridRowIndex + 1}`;
@@ -659,16 +693,54 @@ function ItemDisplay({
     const columnStartDate = new Date(columnConfig.startDate);
     const columnEndDate = new Date(columnConfig.endDate);
 
-    return startDate >= columnStartDate && endDate <= columnEndDate;
+    if (!showAcrossColumns) {
+      return startDate >= columnStartDate && endDate <= columnEndDate;
+    } else {
+      return (
+        (startDate <= columnEndDate && endDate >= columnStartDate) ||
+        (startDate >= columnStartDate && startDate <= columnEndDate) ||
+        (endDate >= columnStartDate && endDate <= columnEndDate)
+      );
+    }
+  }
+
+  function areColumnsAdjacent(col1: ColumnConfig, col2: ColumnConfig): boolean {
+    if (!col1.endDate || !col2.startDate) return false;
+    const col1EndDate = new Date(col1.endDate);
+    const col2StartDate = new Date(col2.startDate);
+
+    col1EndDate.setDate(col1EndDate.getDate() + 1);
+    return col1EndDate.getTime() === col2StartDate.getTime();
   }
 
   function getGridColumn(columnConfigs: ColumnConfig[]) {
+    let startColumn = -1;
+    let endColumn = -1;
+
     for (let i = 0; i < columnConfigs.length; i++) {
       if (isWithinDateRange(columnConfigs[i])) {
-        return `${i + 2} / ${i + 3}`;
+        if (startColumn === -1) {
+          startColumn = i;
+        }
+        endColumn = i;
+        if (!showAcrossColumns) {
+          break;
+        }
+      } else if (startColumn !== -1 && showAcrossColumns) {
+        if (
+          i > 0 &&
+          !areColumnsAdjacent(columnConfigs[i - 1], columnConfigs[i])
+        ) {
+          break;
+        }
       }
     }
-    return "";
+
+    if (startColumn === -1) {
+      return "";
+    }
+
+    return `${startColumn + 2} / ${endColumn + 3}`;
   }
 
   const gridColumn = getGridColumn(columnConfigs);
@@ -679,7 +751,7 @@ function ItemDisplay({
 
   return (
     <div
-      className={`rounded-md text-xs border px-4 py-1 whitespace-normal flex flex-col items-center justify-center text-center`}
+      className="rounded-md text-xs border px-4 py-1 whitespace-normal flex flex-col items-center justify-center text-center"
       style={{
         gridColumn: gridColumn,
         gridRow: gridRow,
@@ -745,92 +817,93 @@ function MileStones({ displayLevel }: { displayLevel: string }) {
       ))}
     </div>
   );
+}
 
-  function EmptyMilestone() {
-    return (
-      <div className="flex justify-center text-2xl z-50 w-full items-center select-none">
-        <TooltipProvider>
-          <Tooltip delayDuration={10}>
-            <TooltipTrigger>
-              <div className="opacity-0">oooo</div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <div>Click to add milestone</div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    );
-  }
+function EmptyMilestone() {
+  return (
+    <div className="flex justify-center text-2xl z-50 w-full items-center select-none">
+      <TooltipProvider>
+        <Tooltip delayDuration={10}>
+          <TooltipTrigger>
+            <div className="opacity-0">oooo</div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div>Click to add milestone</div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}
 
-  function TestingMilestone() {
-    const circleChar = "\u25CF";
-    return (
-      <div className="flex justify-center text-2xl z-50 text-yellow-300 items-center select-none">
-        <TooltipProvider>
-          <Tooltip delayDuration={10}>
-            <TooltipTrigger>
-              <div>{circleChar}</div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <div>Testing Milestone</div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    );
-  }
-  function CompletionMilestone() {
-    const diamondChar = "\u25C6";
-    return (
-      <div className="flex justify-center text-2xl z-50 text-orange-600 items-center select-none">
-        <TooltipProvider>
-          <Tooltip delayDuration={10}>
-            <TooltipTrigger>
-              <div>{diamondChar}</div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <div>{`${
-                displayLevel.charAt(0).toUpperCase() + displayLevel.slice(1)
-              } Completion`}</div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    );
-  }
-  function ReviewMilestone() {
-    const triangleChar = "\u25B2";
-    return (
-      <div className="flex justify-center text-2xl z-50 text-gray-600 items-center select-none">
-        <TooltipProvider>
-          <Tooltip delayDuration={10}>
-            <TooltipTrigger>
-              <div>{triangleChar}</div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <div>Review Milestone</div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    );
-  }
-  function DeploymentMilestone() {
-    const squareChar = "\u25A0";
-    return (
-      <div className="flex justify-center text-2xl z-50 text-green-600 items-center select-none">
-        <TooltipProvider>
-          <Tooltip delayDuration={10}>
-            <TooltipTrigger>
-              <div>{squareChar}</div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <div>Deployment Milestone</div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    );
-  }
+function TestingMilestone() {
+  const circleChar = "\u25CF";
+  return (
+    <div className="flex justify-center text-2xl z-50 text-yellow-300 items-center select-none">
+      <TooltipProvider>
+        <Tooltip delayDuration={10}>
+          <TooltipTrigger>
+            <div>{circleChar}</div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div>Testing Milestone</div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}
+
+function CompletionMilestone() {
+  const diamondChar = "\u25C6";
+  return (
+    <div className="flex justify-center text-2xl z-50 text-orange-600 items-center select-none">
+      <TooltipProvider>
+        <Tooltip delayDuration={10}>
+          <TooltipTrigger>
+            <div>{diamondChar}</div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div>Completion Milestone</div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}
+
+function ReviewMilestone() {
+  const triangleChar = "\u25B2";
+  return (
+    <div className="flex justify-center text-2xl z-50 text-gray-600 items-center select-none">
+      <TooltipProvider>
+        <Tooltip delayDuration={10}>
+          <TooltipTrigger>
+            <div>{triangleChar}</div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div>Review Milestone</div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}
+
+function DeploymentMilestone() {
+  const squareChar = "\u25A0";
+  return (
+    <div className="flex justify-center text-2xl z-50 text-green-600 items-center select-none">
+      <TooltipProvider>
+        <Tooltip delayDuration={10}>
+          <TooltipTrigger>
+            <div>{squareChar}</div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div>Deployment Milestone</div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
 }

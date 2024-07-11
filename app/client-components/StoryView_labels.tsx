@@ -25,6 +25,9 @@ export default function StoryView_labels({
   );
   const [startingQuarter, setStartingQuarter] = useState("Q1");
   const [numberOfQuarters, setNumberOfQuarters] = useState(8);
+  const [selectedTaskOrder, setSelectedTaskOrder] = useState<TaskOrder | null>(
+    null
+  );
 
   function getNextNQuarters(
     n: number,
@@ -137,25 +140,62 @@ export default function StoryView_labels({
     );
   }
 
+  function TaskOrderDropdown() {
+    return (
+      <div className="flex items-center ml-4">
+        <label htmlFor="task-order-dropdown" className="mr-2 mx-2">
+          Select Task Order:
+        </label>
+        <select
+          id="task-order-dropdown"
+          className="px-2 py-1 border rounded"
+          value={selectedTaskOrder?.name || ""}
+          onChange={(e) => {
+            const selectedTaskOrder = taskOrders.find(
+              (to) => to.name === e.target.value
+            );
+            setSelectedTaskOrder(selectedTaskOrder || null);
+          }}
+        >
+          <option value="">All Task Orders</option>
+          {taskOrders.map((to) => (
+            <option key={to.name} value={to.name}>
+              {to.name}
+            </option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-full flex flex-col">
       <div className="flex justify-between items-center">
-        <QuarterSelector />
+        <div className="flex items-center">
+          <QuarterSelector />
+          <TaskOrderDropdown />
+        </div>
         <Button onClick={handleScreenshot}>Save as Image</Button>
       </div>
       <div ref={componentRef}>
         <Title startingYear={parseInt(startingYear)} />
         <HeaderRow selectedQuarters={selectedQuarters} />
-        {taskOrders
-          ? taskOrders.map((to, index) => (
-              <TaskOrderDisplay
-                key={index}
-                taskOrder={to}
-                index={index}
-                selectedQuarters={selectedQuarters}
-              />
-            ))
-          : null}
+        {selectedTaskOrder ? (
+          <TaskOrderDisplay
+            taskOrder={selectedTaskOrder}
+            index={0}
+            selectedQuarters={selectedQuarters}
+          />
+        ) : (
+          taskOrders.map((to, index) => (
+            <TaskOrderDisplay
+              key={index}
+              taskOrder={to}
+              index={index}
+              selectedQuarters={selectedQuarters}
+            />
+          ))
+        )}
       </div>
     </div>
   );
