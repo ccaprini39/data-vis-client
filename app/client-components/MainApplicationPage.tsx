@@ -11,6 +11,7 @@ import CustomView from "./CustomView";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import CapabilitiesView from "./CapabilitiesView";
+import CustomView_Flex from "./Customview_flex";
 
 export default function MainApplicationPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -90,6 +91,12 @@ export default function MainApplicationPage() {
             >
               Story View (Labels)
             </TabsTrigger>
+            <TabsTrigger
+              disabled={tableData.length === 0}
+              value="customview_flex"
+            >
+              CustomView_Flex
+            </TabsTrigger>
             {/* <TabsTrigger disabled={tableData.length === 0} value="debug">Debug</TabsTrigger> */}
           </TabsList>
           <ModeToggle />
@@ -137,6 +144,9 @@ export default function MainApplicationPage() {
         </TabsContent>
         <TabsContent value="stories_labels" className="p-4">
           <StoryView_labels taskOrders={tableData} />
+        </TabsContent>
+        <TabsContent value="customview_flex" className="p-4">
+          <CustomView_Flex taskOrders={tableData} />
         </TabsContent>
         {/* <TabsContent value="debug" className="p-4">
           <pre>{JSON.stringify(tableData, null, 2)}</pre>

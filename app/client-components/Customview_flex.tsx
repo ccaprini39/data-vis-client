@@ -43,7 +43,7 @@ interface Section {
   displayLevel: "taskOrder" | "portfolioEpic" | "capability" | "epic" | "story";
 }
 
-export default function CustomView({ taskOrders }: CustomViewProps) {
+export default function CustomView_Flex({ taskOrders }: CustomViewProps) {
   const [numberOfColumns, setNumberOfColumns] = useState(8);
   const [columnConfigs, setColumnConfigs] = useState<ColumnConfig[]>(
     Array(numberOfColumns).fill({
