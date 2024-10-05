@@ -537,12 +537,13 @@ function PortfolioEpicDisplay({
       style={{
         gridColumn: gridColumn,
         gridRow: gridRow,
-        backgroundColor: color,
+        backgroundColor: "#f3f4f6",
+        borderLeft: `4px solid ${color}`,
       }}
     >
       <HoverCard>
         <HoverCardTrigger asChild>
-          <div className="text-white w-full ">{portfolioEpic.name}</div>
+          <div className="text-gray-800 w-full ">{portfolioEpic.name}</div>
         </HoverCardTrigger>
         <HoverCardContent className="w-96">
           <div className="font-bold text-lg">{portfolioEpic.name}</div>

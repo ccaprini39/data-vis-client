@@ -540,12 +540,13 @@ function StoryDisplay({
       style={{
         gridColumn: gridColumn,
         gridRow: gridRow,
-        backgroundColor: color,
+        backgroundColor: "#f3f4f6",
+        borderLeft: `4px solid ${color}`,
       }}
     >
       <HoverCard>
         <HoverCardTrigger asChild>
-          <div className="text-white w-full ">{story.name}</div>
+          <div className="text-gray-800 w-full ">{story.name}</div>
         </HoverCardTrigger>
         <HoverCardContent className="w-96">
           <div className="font-bold text-lg">{story.name}</div>
